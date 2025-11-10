@@ -8,8 +8,8 @@
 // @author      shiftgeist
 // @description Hide starred repos in trending and remove slob
 // @license     GNU GPLv3
-// @downloadURL https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/github.com/undiscovered-trending/userscript.js
-// @updateURL   https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/github.com/undiscovered-trending/userscript.js
+// @downloadURL https://update.greasyfork.org/scripts/527934/GitHub%3A%20Undiscovered%20Trending.user.js
+// @updateURL https://update.greasyfork.org/scripts/527934/GitHub%3A%20Undiscovered%20Trending.meta.js
 // ==/UserScript==
 
 const ignoreKeywordsInText = [

@@ -2,7 +2,7 @@
 
 ![Preview](./preview.png)
 
-[![](https://img.shields.io/badge/install-userscript-blue?logo=javascript)](https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/github.com/undiscovered-trending/userscript.js)
+[![](https://img.shields.io/badge/install-userscript-blue?logo=javascript)](https://update.greasyfork.org/scripts/527934/GitHub%3A%20Undiscovered%20Trending.user.js)
 
 ## Setup
 
