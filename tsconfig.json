@@ -1,0 +1,14 @@
+{
+  "$schema": "https://www.schemastore.org/tsconfig",
+  "extends": "@tsconfig/recommended",
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "strict": false,
+    "types": [
+      "@violentmonkey/types"
+    ],
+    "lib": ["DOM", "ES2018"]
+  }
+}

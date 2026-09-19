@@ -1,15 +1,19 @@
 // ==UserScript==
 // @name        GitHub: Undiscovered Trending
 // @namespace   shiftgeist
-// @icon        https://github.com/fluidicon.png
+// @icon        https://www.google.com/s2/favicons?sz=64&domain=github.com
+// @version     20251110.0
+//
 // @match       https://github.com/trending*
 // @grant       none
-// @version     20251110
+// @run-at      document-idle
+//
 // @author      shiftgeist
 // @description Hide starred repos in trending and remove slob
 // @license     GNU GPLv3
-// @downloadURL https://update.greasyfork.org/scripts/527934/GitHub%3A%20Undiscovered%20Trending.user.js
-// @updateURL https://update.greasyfork.org/scripts/527934/GitHub%3A%20Undiscovered%20Trending.meta.js
+//
+// @updateURL   https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/github.com/undiscovered-trending/userscript.js
+// @downloadURL https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/github.com/undiscovered-trending/userscript.js
 // ==/UserScript==
 
 const ignoreKeywordsInText = [
@@ -106,7 +110,7 @@ function main() {
 log("init");
 
 let previousUrl = "";
-const observer = new MutationObserver(function (mutations) {
+const observer = new MutationObserver(function () {
   if (location.href !== previousUrl) {
     previousUrl = location.href;
     main();
