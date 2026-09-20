@@ -15,26 +15,25 @@
 // @updateURL   https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/youtube.com/controls-visible-on-pause.user.js
 // @downloadURL https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/youtube.com/controls-visible-on-pause.user.js
 // ==/UserScript==
-
-(function () {
-  'use strict';
+;(() => {
+  'use strict'
 
   const observer = new MutationObserver(() => {
-    const player = document.querySelector('#movie_player');
+    const player = document.querySelector('#movie_player')
 
     /** @type {HTMLVideoElement} */
-    const video = document.querySelector('video.html5-main-video');
+    const video = document.querySelector('video.html5-main-video')
 
-    if (!player || !video) return;
+    if (!player || !video) return
 
     if (video.paused && player.classList.contains('ytp-autohide')) {
-      player.classList.remove('ytp-autohide');
+      player.classList.remove('ytp-autohide')
     }
-  });
+  })
 
   observer.observe(document.body, {
     attributes: true,
     attributeFilter: ['class'],
-    subtree: true,
-  });
-})();
+    subtree: true
+  })
+})()

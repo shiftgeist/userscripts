@@ -2,8 +2,11 @@
   "name": "userscripts",
   "version": "1.0.0",
   "description": "Collection of userscripts",
-  "author": "shiftgeist",
   "license": "GNU GPLv3",
+  "author": "shiftgeist",
+  "scripts": {
+    "postinstall": "dprint check &>/dev/null"
+  },
   "devDependencies": {
     "@tsconfig/recommended": "^1.0.13",
     "@violentmonkey/types": "^0.3.4"

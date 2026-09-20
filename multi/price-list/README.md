@@ -4,14 +4,14 @@ A userscript that collects all prices on a listing page, computes stats, and cop
 
 ## Supported sites
 
-| Site | Category |
-| --- | --- |
-| eBay (.com / .de / .co.uk / .fr / .it / .es / .at / .ch) | General |
-| Kleinanzeigen.de | General |
-| mobile.de | Cars & motorcycles |
-| AutoScout24.de | Cars & motorcycles |
-| 1000ps.de / 1000ps.at | Motorcycles |
-| Motorrad-Boerse.de | Motorcycles |
+| Site                                                     | Category           |
+| -------------------------------------------------------- | ------------------ |
+| eBay (.com / .de / .co.uk / .fr / .it / .es / .at / .ch) | General            |
+| Kleinanzeigen.de                                         | General            |
+| mobile.de                                                | Cars & motorcycles |
+| AutoScout24.de                                           | Cars & motorcycles |
+| 1000ps.de / 1000ps.at                                    | Motorcycles        |
+| Motorrad-Boerse.de                                       | Motorcycles        |
 
 ## What it does
 

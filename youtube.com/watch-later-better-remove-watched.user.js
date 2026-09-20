@@ -15,8 +15,7 @@
 // @updateURL   https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/youtube.com/watch-later-better-remove-watched.user.js
 // @downloadURL https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/youtube.com/watch-later-better-remove-watched.user.js
 // ==/UserScript==
-
-(async function () {
+;(async () => {
   'use strict'
 
   const debug = window.localStorage.getItem('better-remove-watched-debug') === 'true'
@@ -180,8 +179,8 @@
 
     if (
       !(
-        window.location.href.includes('youtube.com/playlist') &&
-        window.location.search.includes('list=WL')
+        window.location.href.includes('youtube.com/playlist')
+        && window.location.search.includes('list=WL')
       )
     ) {
       log('Not on watch later playlist')
