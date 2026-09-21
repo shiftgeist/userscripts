@@ -16,7 +16,7 @@
 // @downloadURL https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/koeln-bonn-airport.de/arrival-departure-bussy-flight-window.user.js
 // ==/UserScript==
 
-const debug = window.localStorage.getItem('debug-log') === 'true'
+const debug = window.localStorage.getItem('userscript-debug') === 'true'
 const doc = document
 const elAttach = '#main-content-container'
 

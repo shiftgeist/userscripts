@@ -5,6 +5,7 @@
   "license": "GNU GPLv3",
   "author": "shiftgeist",
   "scripts": {
+    "serve": "pnpx serve .",
     "postinstall": "dprint check &>/dev/null"
   },
   "devDependencies": {

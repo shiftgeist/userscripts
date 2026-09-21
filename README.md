@@ -39,7 +39,7 @@ const meta = `
 // @name        ${NAME}
 // @namespace   shiftgeist
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=${WEBSITE} or https://fav.farm/${EMOJI}
-// @version     YYYYMMDD.0
+// @version     YYYYMMDD.0-999 or YYYYMMDD.HHMM
 //
 // @match       https://${MATCH_WEBSITE}*
 // @grant       none
@@ -49,8 +49,8 @@ const meta = `
 // @description ${DESCRIPTION}
 // @license     GNU GPLv3
 //
-// @updateURL   https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/${PATH}
-// @downloadURL https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/${PATH}
+// @updateURL   https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/${PATH}.user.js
+// @downloadURL https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/${PATH}.user.js
 // ==/UserScript==
 `
 ```
@@ -58,10 +58,14 @@ const meta = `
 PATH
 
 - Strip `www.`
-- Filename: `name.user.js` or `name/userscript.js` if more then user.js
+- Filename: `${name}.user.js` or `${name}/script.user.js` if more then user.js
 
 Build tree
 
 ```sh
 tree -P '*.js' -I 'node_modules|dist' --noreport
 ```
+
+## Tasks
+
+- [ ] Provide `${PATH}.meta.js` for `@updateURL`

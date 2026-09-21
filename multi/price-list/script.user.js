@@ -26,8 +26,8 @@
 // @description Collect prices on supported listing pages, show stats, copy to clipboard
 // @license     GNU GPLv3
 //
-// @updateURL   https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/${PATH}
-// @downloadURL https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/${PATH}
+// @updateURL   https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/multi/price-list/script.user.js
+// @downloadURL https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/multi/price-list/script.user.js
 // ==/UserScript==
 ;(() => {
   'use strict'

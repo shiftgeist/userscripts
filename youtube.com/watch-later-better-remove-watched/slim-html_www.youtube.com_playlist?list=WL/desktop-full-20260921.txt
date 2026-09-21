@@ -1,0 +1,162 @@
+<body> [body]
+  <ytd-app> [ytd-app]
+    <div id="content" class="ytd-app"> [#content]
+      <div id="masthead-container" class="ytd-app"> [#masthead-container]
+        <ytd-masthead id="masthead" class="masthead-finish" role="banner"> [#masthead]
+          <div id="container" class="ytd-masthead"> [#container]
+            <div id="start" class="ytd-masthead"> [#start]
+              <yt-icon-button id="guide-button" class="ytd-masthead"> [#guide-button]
+                <button id="button" class="yt-icon-button" aria-label="Übersicht" aria-pressed="true"> [#button]
+              <ytd-topbar-logo-renderer id="logo" class="ytd-masthead"> [#logo]
+                <a class="yt-simple-endpoint ytd-topbar-logo-renderer" id="logo" href="/" title="YouTube-Startseite"> [#logo]
+                <span id="country-code" class="ytd-topbar-logo-renderer"> [#country-code] "DE"
+              <div id="skip-navigation" class="ytd-masthead"> [#skip-navigation]
+                <ytd-button-renderer class="ytd-masthead"> [ytd-button-renderer.ytd-masthead]
+                  <button class="ytSpecButtonShapeNextHost ytSpecButtonShapeNextTonal ytSpecButtonShapeNextMono" title="" aria-disabled="false"> [button.ytSpecButtonShapeNextHost.ytSpecButtonShapeNextTonal] "Navigation überspringen"
+            <div id="center" class="ytd-masthead"> [#center]
+              <yt-searchbox role="search" class="ytSearchboxComponentHost ytSearchboxComponentDesktop ytd-masthead"> [yt-searchbox.ytSearchboxComponentHost.ytSearchboxComponentDesktop]
+                <div class="ytSearchboxComponentInputWrapper"> [div.ytSearchboxComponentInputWrapper:nth-of-type(1)]
+                  <div class="ytSearchboxComponentInputContainer"> [div.ytSearchboxComponentInputContainer]
+                    <form class="ytSearchboxComponentSearchForm"> [form.ytSearchboxComponentSearchForm]
+                      <input class="ytSearchboxComponentInput yt-searchbox-input title" name="search_query" aria-controls="i0" aria-expanded="true" type="text" aria-autocomplete="list" role="combobox" placeholder="Suchen"> [input.ytSearchboxComponentInput.yt-searchbox-input]
+                    <button aria-label="Search" class="ytSearchboxComponentSearchButton ytSearchboxComponentSearchButtonDark" title="Suchen"> [button.ytSearchboxComponentSearchButton.ytSearchboxComponentSearchButtonDark]
+              <div id="voice-search-button" class="ytd-masthead"> [#voice-search-button]
+                <ytd-button-renderer class="ytd-masthead"> [ytd-button-renderer.ytd-masthead]
+                  <button class="ytSpecButtonShapeNextHost ytSpecButtonShapeNextText ytSpecButtonShapeNextMono" aria-label="Sprachsuche verwenden" aria-disabled="false"> [button.ytSpecButtonShapeNextHost.ytSpecButtonShapeNextText]
+            … [1 more similar <div.ytd-masthead> omitted]
+      <tp-yt-app-drawer id="guide" role="navigation" class="ytd-app"> [#guide]
+        <div id="contentContainer" class="tp-yt-app-drawer"> [#contentContainer]
+          <div id="guide-wrapper" class="ytd-app"> [#guide-wrapper]
+            <div id="guide-content" class="ytd-app"> [#guide-content]
+              <div id="guide-inner-content" class="ytd-app"> [#guide-inner-content]
+                <ytd-guide-renderer id="guide-renderer" class="ytd-app"> [#guide-renderer]
+                  <div id="sections" class="ytd-guide-renderer"> [#sections]
+                    <ytd-guide-section-renderer class="ytd-guide-renderer"> [ytd-guide-section-renderer.ytd-guide-renderer:nth-of-type(1)]
+                      <div id="items" class="ytd-guide-section-renderer"> [#items]
+                        <ytd-guide-entry-renderer class="ytd-guide-section-renderer"> [ytd-guide-entry-renderer.ytd-guide-section-renderer:nth-of-type(1)]
+                          <a id="endpoint" class="yt-simple-endpoint ytd-guide-entry-renderer" role="link" href="/"> [#endpoint] "Startseite"
+                    <ytd-guide-section-renderer class="ytd-guide-renderer"> [ytd-guide-section-renderer.ytd-guide-renderer:nth-of-type(2)]
+                      <div id="items" class="ytd-guide-section-renderer"> [#items]
+                        <ytd-guide-collapsible-section-entry-renderer class="ytd-guide-section-renderer"> [ytd-guide-collapsible-section-entry-renderer.ytd-guide-section-renderer]
+                          <div id="header" class="ytd-guide-collapsible-section-entry-renderer"> [#header]
+                            <ytd-guide-entry-renderer id="header-entry" class="ytd-guide-collapsible-section-entry-renderer"> [#header-entry]
+                              <a id="endpoint" class="yt-simple-endpoint ytd-guide-entry-renderer" role="link" href="/feed/subscriptions"> [#endpoint] "Abos"
+                        <ytd-guide-entry-renderer class="ytd-guide-section-renderer"> [ytd-guide-entry-renderer.ytd-guide-section-renderer:nth-of-type(1)]
+                          <a id="endpoint" class="yt-simple-endpoint ytd-guide-entry-renderer" role="link" aria-label="1 Minute Talk Show. Neue Inhalte verfügbar." href="/@1MinuteTalkShow"> [#endpoint] "1 Minute Talk Show"
+                        <ytd-guide-entry-renderer class="ytd-guide-section-renderer"> [ytd-guide-entry-renderer.ytd-guide-section-renderer:nth-of-type(2)]
+                          <a id="endpoint" class="yt-simple-endpoint ytd-guide-entry-renderer" role="link" href="/@2BoredGuysOfficial"> [#endpoint] "2 Bored Guys"
+                        … [5 more similar <ytd-guide-entry-renderer.ytd-guide-section-renderer> omitted]
+                        <ytd-guide-collapsible-entry-renderer class="ytd-guide-section-renderer"> [ytd-guide-collapsible-entry-renderer.ytd-guide-section-renderer]
+                          <ytd-guide-entry-renderer id="expander-item" role="button" class="ytd-guide-collapsible-entry-renderer"> [#expander-item]
+                            <a id="endpoint" class="yt-simple-endpoint ytd-guide-entry-renderer" role="link"> [#endpoint] "Mehr anzeigen"
+                    … [4 more similar <ytd-guide-section-renderer.ytd-guide-renderer> omitted]
+                  <div id="footer" class="ytd-guide-renderer"> [#footer]
+                    <div id="guide-links-primary" class="ytd-guide-renderer"> [#guide-links-primary]
+                      <a href="/about/"> [a:nth-of-type(1)] "Info"
+                      <a href="/about/press/"> [a:nth-of-type(2)] "Presse"
+                      <a href="/about/copyright/"> [a:nth-of-type(3)] "Urheberrecht"
+                      <a href="/t/contact_us/"> [a:nth-of-type(4)] "Kontakt"
+                      <a href="/creators/"> [a:nth-of-type(5)] "Creator"
+                      <a href="/ads/"> [a:nth-of-type(6)] "Werben"
+                      <a href="/youtube"> [a:nth-of-type(7)] "Entwickler"
+                      <a href="/t/impressum?hl=de&gl=DE"> [a:nth-of-type(8)] "Impressum"
+                      <a href="/youtube/contact/de_cancellation"> [a:nth-of-type(9)] "Verträge hier kündigen"
+                    <div id="guide-links-secondary" class="ytd-guide-renderer"> [#guide-links-secondary]
+                      <a href="/t/terms"> [a:nth-of-type(1)] "Nutzungsbedingungen"
+                      <a href="/t/privacy"> [a:nth-of-type(2)] "Datenschutz"
+                      <a href="/about/policies/"> [a:nth-of-type(3)] "Richtlinien & Sicherheit"
+                      <a href="/howyoutubeworks?utm_campaign=ytgen&utm_source=ythp&utm_medium=LeftNav&utm_content=txt&u=https%3A%2F%2Fwww.youtube.com%2Fhowyoutubeworks%3Futm_source%3Dythp%26utm_medium%3DLeftNav%26utm_campaign%3Dytgen"> [a:nth-of-type(4)] "Wie funktioniert YouTube?"
+                      <a href="/new"> [a:nth-of-type(5)] "Neue Funktionen testen"
+                    <div id="copyright"> [#copyright]
+                      <div> [div] "© 2026 Google LLC"
+      <ytd-page-manager id="page-manager" class="ytd-app"> [#page-manager]
+        <ytd-browse class="ytd-page-manager" role="main"> [ytd-browse.ytd-page-manager]
+          <ytd-playlist-header-renderer class="ytd-browse"> [ytd-playlist-header-renderer.ytd-browse]
+            <div class="immersive-header-container ytd-playlist-header-renderer"> [div.immersive-header-container.ytd-playlist-header-renderer]
+              <div class="immersive-header-background-wrapper ytd-playlist-header-renderer"> [div.immersive-header-background-wrapper.ytd-playlist-header-renderer:nth-of-type(1)]
+                <yt-img-shadow class="blurred-image ytd-playlist-header-renderer no-transition" alt="hidden" aria-hidden=""> [yt-img-shadow.blurred-image.ytd-playlist-header-renderer]
+                  <img id="img" class="yt-img-shadow" alt="hidden" src="…"> [#img]
+              <div class="immersive-header-content ytd-playlist-header-renderer"> [div.immersive-header-content.ytd-playlist-header-renderer:nth-of-type(2)]
+                <div class="thumbnail-and-metadata-wrapper ytd-playlist-header-renderer"> [div.thumbnail-and-metadata-wrapper.ytd-playlist-header-renderer:nth-of-type(1)]
+                  <a class="yt-simple-endpoint ytd-playlist-header-renderer" href="/watch?v=zL5RHc72Um0&list=WL"> [a.yt-simple-endpoint.ytd-playlist-header-renderer] "Alle abspielen"
+                  <div class="metadata-wrapper ytd-playlist-header-renderer"> [div.metadata-wrapper.ytd-playlist-header-renderer]
+                    <yt-dynamic-sizing-formatted-string id="title-display" aria-level="1" role="heading" class="ytd-playlist-header-renderer"> [#title-display]
+                      <div id="container" class="dynamic-text-container yt-dynamic-sizing-formatted-string"> [#container]
+                        <yt-formatted-string id="text" class="yt-dynamic-sizing-formatted-string yt-sans-bold yt-display-xs"> [#text] "Später ansehen"
+                    <div class="metadata-action-bar ytd-playlist-header-renderer"> [div.metadata-action-bar.ytd-playlist-header-renderer:nth-of-type(1)]
+                      <div class="metadata-text-wrapper ytd-playlist-header-renderer"> [div.metadata-text-wrapper.ytd-playlist-header-renderer:nth-of-type(1)]
+                        <yt-formatted-string id="owner-text" class="ytd-playlist-header-renderer"> [#owner-text]
+                          <a class="yt-simple-endpoint yt-formatted-string" href="/@chemnitzel"> [a.yt-simple-endpoint.yt-formatted-string] "Chemnitzel"
+                        <ytd-playlist-byline-renderer class="ytd-playlist-header-renderer"> [ytd-playlist-byline-renderer.ytd-playlist-header-renderer]
+                          <div class="metadata-stats ytd-playlist-byline-renderer"> [div.metadata-stats.ytd-playlist-byline-renderer]
+                            <yt-formatted-string class="byline-item ytd-playlist-byline-renderer"> [yt-formatted-string.byline-item.ytd-playlist-byline-renderer:nth-of-type(1)] "1.082 Videos"
+                            <yt-formatted-string class="byline-item ytd-playlist-byline-renderer"> [yt-formatted-string.byline-item.ytd-playlist-byline-renderer:nth-of-type(2)] "Keine Aufrufe"
+                            … [1 more similar <yt-formatted-string.byline-item.ytd-playlist-byline-renderer> omitted]
+                      <div class="metadata-buttons-wrapper ytd-playlist-header-renderer"> [div.metadata-buttons-wrapper.ytd-playlist-header-renderer:nth-of-type(2)]
+                        <ytd-menu-renderer class="ytd-playlist-header-renderer"> [ytd-menu-renderer.ytd-playlist-header-renderer]
+                          <button class="ytSpecButtonShapeNextHost ytSpecButtonShapeNextTonal ytSpecButtonShapeNextOverlay" aria-label="Aktionsmenü"> [button.ytSpecButtonShapeNextHost.ytSpecButtonShapeNextTonal]
+                        <button class="better-remove-watched-button" title="Visible videos watched"> [button.better-remove-watched-button:nth-of-type(1)] "Remove watched"
+                        <button class="better-remove-watched-button" title="Click -10% (remove at 90% watched)"> [button.better-remove-watched-button:nth-of-type(2)] "90%"
+                    <div class="play-menu spaced-row wide-screen-form"> [div.play-menu.spaced-row:nth-of-type(2)]
+                      <ytd-button-renderer class="play-button ytd-playlist-header-renderer"> [ytd-button-renderer.play-button.ytd-playlist-header-renderer:nth-of-type(1)]
+                        <a href="/watch?v=zL5RHc72Um0&list=WL" class="ytSpecButtonShapeNextHost ytSpecButtonShapeNextFilled ytSpecButtonShapeNextOverlay" aria-current="false" aria-disabled="false"> [a.ytSpecButtonShapeNextHost.ytSpecButtonShapeNextFilled] "Alle abspielen"
+                      <ytd-button-renderer class="shuffle-button ytd-playlist-header-renderer"> [ytd-button-renderer.shuffle-button.ytd-playlist-header-renderer:nth-of-type(2)]
+                        <a href="/watch?v=vt7cmndhZxM&list=WL" class="ytSpecButtonShapeNextHost ytSpecButtonShapeNextTonal ytSpecButtonShapeNextOverlay" aria-current="false" aria-disabled="false"> [a.ytSpecButtonShapeNextHost.ytSpecButtonShapeNextTonal] "Zufallsmix"
+          <ytd-two-column-browse-results-renderer class="ytd-browse grid grid-disabled"> [ytd-two-column-browse-results-renderer.ytd-browse.grid]
+            <div id="primary" class="ytd-two-column-browse-results-renderer"> [#primary]
+              <ytd-section-list-renderer class="ytd-two-column-browse-results-renderer"> [ytd-section-list-renderer.ytd-two-column-browse-results-renderer]
+                <div id="contents" class="ytd-section-list-renderer"> [#contents]
+                  <ytd-item-section-renderer class="ytd-section-list-renderer"> [ytd-item-section-renderer.ytd-section-list-renderer]
+                    <div id="header" class="ytd-item-section-renderer ytd-item-section-renderer"> [#header]
+                      <chip-bar-view-model class="ytChipBarViewModelHost ytd-item-section-renderer"> [chip-bar-view-model.ytChipBarViewModelHost.ytd-item-section-renderer]
+                        <div role="tablist" class="ytChipBarViewModelChipBarScrollContainer"> [div.ytChipBarViewModelChipBarScrollContainer]
+                          <div role="presentation" class="ytChipBarViewModelChipWrapper"> [div.ytChipBarViewModelChipWrapper]
+                            <chip-view-model class="ytChipViewModelHost"> [chip-view-model.ytChipViewModelHost]
+                              <chip-shape class="ytChipShapeHost"> [chip-shape.ytChipShapeHost]
+                                <button class="ytChipShapeButtonReset" role="combobox" aria-selected="false"> [button.ytChipShapeButtonReset] "Hinzugefügt am... (neueste zuerst)"
+                    <div id="contents" class="ytd-item-section-renderer ytd-item-section-renderer"> [#contents]
+                      <ytd-playlist-video-list-renderer class="ytd-item-section-renderer"> [ytd-playlist-video-list-renderer.ytd-item-section-renderer]
+                        <div id="contents" class="ytd-playlist-video-list-renderer"> [#contents]
+                          <ytd-playlist-video-renderer class="ytd-playlist-video-list-renderer"> [ytd-playlist-video-renderer.ytd-playlist-video-list-renderer:nth-of-type(1)]
+                            <div id="index-container" class="playlist-drag-handle ytd-playlist-video-renderer"> [#index-container]
+                              <yt-formatted-string id="index" class="ytd-playlist-video-renderer"> [#index] "1"
+                            <div id="content" class="ytd-playlist-video-renderer"> [#content]
+                              <div id="container" class="ytd-playlist-video-renderer"> [#container]
+                                <ytd-thumbnail id="thumbnail" class="ytd-playlist-video-renderer"> [#thumbnail]
+                                  <a id="thumbnail" class="yt-simple-endpoint inline-block ytd-thumbnail" aria-hidden="true" href="/watch?v=zL5RHc72Um0&list=WL&index=1"> [#thumbnail] "20:10 20:10 Läuft gerade"
+                                <div id="meta" class="ytd-playlist-video-renderer"> [#meta]
+                                  <h3 class="ytd-playlist-video-renderer" aria-label="You Might Have a Bad Sense of Humor... 20 Minuten"> [h3.ytd-playlist-video-renderer]
+                                    <a id="video-title" class="yt-simple-endpoint ytd-playlist-video-renderer" href="/watch?v=zL5RHc72Um0&list=WL&index=1"> [#video-title] "You Might Have a Bad Sense of Humor..."
+                                  <ytd-video-meta-block class="playlist ytd-playlist-video-renderer byline-separated"> [ytd-video-meta-block.playlist.ytd-playlist-video-renderer]
+                                    <div id="metadata" class="ytd-video-meta-block"> [#metadata]
+                                      <div id="byline-container" class="ytd-video-meta-block"> [#byline-container]
+                                        <ytd-channel-name id="channel-name" class="ytd-video-meta-block ytd-video-meta-block"> [#channel-name]
+                                          <div id="container" class="ytd-channel-name"> [#container]
+                                            <div id="text-container" class="ytd-channel-name"> [#text-container]
+                                              <yt-formatted-string id="text" class="ytd-channel-name complex-string"> [#text]
+                                                <a class="yt-simple-endpoint yt-formatted-string" href="/@CarolineKonstnar"> [a.yt-simple-endpoint.yt-formatted-string] "Caroline Konstnar"
+                                        <div id="separator" class="ytd-video-meta-block"> [#separator] "•"
+                                        <yt-formatted-string id="video-info" class="ytd-video-meta-block"> [#video-info] "299.468 Aufrufe • vor 1 Monat"
+                            … [1 more similar <div.playlist-drag-handle.ytd-playlist-video-renderer> omitted]
+                          <ytd-playlist-video-renderer class="ytd-playlist-video-list-renderer"> [ytd-playlist-video-renderer.ytd-playlist-video-list-renderer:nth-of-type(2)]
+                            <div id="index-container" class="playlist-drag-handle ytd-playlist-video-renderer"> [#index-container]
+                              <yt-formatted-string id="index" class="ytd-playlist-video-renderer"> [#index] "2"
+                            <div id="content" class="ytd-playlist-video-renderer"> [#content]
+                              <div id="container" class="ytd-playlist-video-renderer"> [#container]
+                                <ytd-thumbnail id="thumbnail" class="ytd-playlist-video-renderer"> [#thumbnail]
+                                  <a id="thumbnail" class="yt-simple-endpoint inline-block ytd-thumbnail" aria-hidden="true" href="/watch?v=brGKovyamo0&list=WL&index=2"> [#thumbnail] "11:57 11:57 Läuft gerade"
+                                <div id="meta" class="ytd-playlist-video-renderer"> [#meta]
+                                  <h3 class="ytd-playlist-video-renderer" aria-label="Ice age 3 Dawn of the Dinosaurs explained by an idiot 11 Minuten, 57 Sekunden"> [h3.ytd-playlist-video-renderer]
+                                    <a id="video-title" class="yt-simple-endpoint ytd-playlist-video-renderer" href="/watch?v=brGKovyamo0&list=WL&index=2"> [#video-title] "Ice age 3 Dawn of the Dinosaurs explained by an idiot"
+                                  <ytd-video-meta-block class="playlist ytd-playlist-video-renderer byline-separated"> [ytd-video-meta-block.playlist.ytd-playlist-video-renderer]
+                                    <div id="metadata" class="ytd-video-meta-block"> [#metadata]
+                                      <div id="byline-container" class="ytd-video-meta-block"> [#byline-container]
+                                        <ytd-channel-name id="channel-name" class="ytd-video-meta-block ytd-video-meta-block"> [#channel-name]
+                                          <div id="container" class="ytd-channel-name"> [#container]
+                                            <div id="text-container" class="ytd-channel-name"> [#text-container]
+                                              <yt-formatted-string id="text" class="ytd-channel-name complex-string"> [#text]
+                                                <a class="yt-simple-endpoint yt-formatted-string" href="/@HighBoi"> [a.yt-simple-endpoint.yt-formatted-string] "High Boi"
+                                        <div id="separator" class="ytd-video-meta-block"> [#separator] "•"
+                                        <yt-formatted-string id="video-info" class="ytd-video-meta-block"> [#video-info] "20.816 Aufrufe • vor 1 Stunde"
+                            … [1 more similar <div.playlist-drag-handle.ytd-playlist-video-renderer> omitted]
+                          … [98 more similar <ytd-playlist-video-renderer.ytd-playlist-video-list-renderer> omitted]

@@ -1,0 +1,21 @@
+<ytd-playlist-video-renderer class="ytd-playlist-video-list-renderer"> [ytd-playlist-video-renderer.ytd-playlist-video-list-renderer:nth-of-type(5)]
+  <div id="index-container" class="playlist-drag-handle ytd-playlist-video-renderer"> [#index-container]
+    <yt-formatted-string id="index" class="ytd-playlist-video-renderer"> [#index] "5"
+  <div id="content" class="ytd-playlist-video-renderer"> [#content]
+    <div id="container" class="ytd-playlist-video-renderer"> [#container]
+      <ytd-thumbnail id="thumbnail" class="ytd-playlist-video-renderer"> [#thumbnail]
+        <a id="thumbnail" class="yt-simple-endpoint inline-block ytd-thumbnail" aria-hidden="true" href="/watch?v=ZMmiSpzRnD4&list=WL&index=5"> [#thumbnail] "ANGESEHEN32:10 32:10 Läuft gerade"
+      <div id="meta" class="ytd-playlist-video-renderer"> [#meta]
+        <h3 class="ytd-playlist-video-renderer" aria-label="Rebuilding & Riding My Salvage BMW S1000 XR 32 Minuten"> [h3.ytd-playlist-video-renderer]
+          <a id="video-title" class="yt-simple-endpoint ytd-playlist-video-renderer" href="/watch?v=ZMmiSpzRnD4&list=WL&index=5"> [#video-title] "Rebuilding & Riding My Salvage BMW S1000 XR"
+        <ytd-video-meta-block class="playlist ytd-playlist-video-renderer byline-separated"> [ytd-video-meta-block.playlist.ytd-playlist-video-renderer]
+          <div id="metadata" class="ytd-video-meta-block"> [#metadata]
+            <div id="byline-container" class="ytd-video-meta-block"> [#byline-container]
+              <ytd-channel-name id="channel-name" class="ytd-video-meta-block ytd-video-meta-block"> [#channel-name]
+                <div id="container" class="ytd-channel-name"> [#container]
+                  <div id="text-container" class="ytd-channel-name"> [#text-container]
+                    <yt-formatted-string id="text" class="ytd-channel-name complex-string"> [#text]
+                      <a class="yt-simple-endpoint yt-formatted-string" href="/@ChaosCauses"> [a.yt-simple-endpoint.yt-formatted-string] "Chaos Causes"
+              <div id="separator" class="ytd-video-meta-block"> [#separator] "•"
+              <yt-formatted-string id="video-info" class="ytd-video-meta-block"> [#video-info] "109.303 Aufrufe • vor 1 Tag"
+  … [1 more similar <div.playlist-drag-handle.ytd-playlist-video-renderer> omitted]

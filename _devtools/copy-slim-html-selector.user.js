@@ -2,7 +2,7 @@
 // @name        DOM Tools: Slim HTML Copier
 // @namespace   shiftgeist
 // @icon        https://fav.farm/📋
-// @version     20260918.2
+// @version     20260921.194741
 //
 // @match       *://*/*
 // @grant       GM_registerMenuCommand
@@ -196,7 +196,9 @@
     return parts.length ? ' ' + parts.join(' ') : ''
   }
 
-  function isRedundantHiddenDuplicate(el) {
+  function isRedundantHiddenDuplicate(el, filterDuplicates = true) {
+    if (!filterDuplicates) return false
+
     const isHidden = el.classList.contains('visually-hidden') || el.classList.contains('sr-only')
     if (!isHidden) return false
     const text = ownTextOf(el)
@@ -205,17 +207,17 @@
     return [...visibleSiblings].some(sib => ownTextOf(sib).includes(text))
   }
 
-  function hasRenderableContent(el) {
+  function hasRenderableContent(el, filterDuplicates = true) {
     if (!(el instanceof Element)) return false
     const tag = el.tagName.toLowerCase()
     if (SKIP_TAGS.has(tag)) return false
     if (!isVisible(el)) return false
-    if (isRedundantHiddenDuplicate(el)) return false
+    if (isRedundantHiddenDuplicate(el, filterDuplicates)) return false
     if (INTERACTIVE_TAGS.has(tag)) return true
     if (ownTextOf(el).length > 0) return true
 
     for (const child of el.children) {
-      if (hasRenderableContent(child)) return true
+      if (hasRenderableContent(child, filterDuplicates)) return true
     }
     return false
   }
@@ -230,7 +232,7 @@
     return false
   }
 
-  function isTransparentWrapper(el) {
+  function isTransparentWrapper(el, filterDuplicates = true) {
     if (!(el instanceof Element)) return false
     const tag = el.tagName.toLowerCase()
     if (INTERACTIVE_TAGS.has(tag)) return false
@@ -244,7 +246,7 @@
     // Must wrap exactly 1 renderable child
     let renderableCount = 0
     for (const child of el.children) {
-      if (hasRenderableContent(child)) {
+      if (hasRenderableContent(child, filterDuplicates)) {
         renderableCount++
         if (renderableCount > 1) return false
       }
@@ -265,17 +267,17 @@
     return false
   }
 
-  function getEffectiveChildren(element) {
+  function getEffectiveChildren(element, filterDuplicates = true) {
     const result = []
     for (const child of element.children) {
       const tag = child.tagName.toLowerCase()
       if (SKIP_TAGS.has(tag)) continue
       if (!isVisible(child)) continue
-      if (isRedundantHiddenDuplicate(child)) continue
-      if (!hasRenderableContent(child)) continue
+      if (isRedundantHiddenDuplicate(child, filterDuplicates)) continue
+      if (!hasRenderableContent(child, filterDuplicates)) continue
 
-      if (isTransparentWrapper(child)) {
-        result.push(...getEffectiveChildren(child))
+      if (isTransparentWrapper(child, filterDuplicates)) {
+        result.push(...getEffectiveChildren(child, filterDuplicates))
       } else {
         result.push(child)
       }
@@ -290,7 +292,7 @@
   }
 
   // Preserved from original: reliable structural & semantic similarity grouping
-  function areSimilarSiblings(a, b) {
+  function areSimilarSiblings(a, b, filterDuplicates = true) {
     if (!(a instanceof Element) || !(b instanceof Element)) return false
     if (a.tagName !== b.tagName) return false
 
@@ -311,8 +313,8 @@
     const union = new Set([...classesA, ...classesB])
     const jaccard = union.size === 0 ? 1 : common.length / union.size
 
-    const childrenA = getEffectiveChildren(a)
-    const childrenB = getEffectiveChildren(b)
+    const childrenA = getEffectiveChildren(a, filterDuplicates)
+    const childrenB = getEffectiveChildren(b, filterDuplicates)
 
     const maxLen = Math.max(childrenA.length, childrenB.length)
     const minLen = Math.min(childrenA.length, childrenB.length)
@@ -360,7 +362,7 @@
     return false
   }
 
-  function groupSimilarSiblings(children) {
+  function groupSimilarSiblings(children, filterDuplicates = true) {
     const groups = []
     let currentGroup = []
 
@@ -370,7 +372,10 @@
       } else {
         const proto = currentGroup[0]
         const prev = currentGroup[currentGroup.length - 1]
-        if (areSimilarSiblings(proto, child) || areSimilarSiblings(prev, child)) {
+        if (
+          areSimilarSiblings(proto, child, filterDuplicates)
+          || areSimilarSiblings(prev, child, filterDuplicates)
+        ) {
           currentGroup.push(child)
         } else {
           groups.push(currentGroup)
@@ -382,12 +387,12 @@
     return groups
   }
 
-  function serialize(el, depth = 0, isRoot = true) {
+  function serialize(el, depth = 0, isRoot = true, filterDuplicates = true) {
     const tag = el.tagName.toLowerCase()
     if (SKIP_TAGS.has(tag)) return ''
     if (!isVisible(el)) return ''
-    if (isRedundantHiddenDuplicate(el)) return ''
-    if (!isRoot && !hasRenderableContent(el)) return ''
+    if (isRedundantHiddenDuplicate(el, filterDuplicates)) return ''
+    if (!isRoot && !hasRenderableContent(el, filterDuplicates)) return ''
 
     let text = ownTextOf(el)
     let shouldPruneChildren = false
@@ -406,14 +411,14 @@
       return line
     }
 
-    const effectiveChildren = getEffectiveChildren(el)
-    const groups = groupSimilarSiblings(effectiveChildren)
+    const effectiveChildren = getEffectiveChildren(el, filterDuplicates)
+    const groups = groupSimilarSiblings(effectiveChildren, filterDuplicates)
     const childLines = []
 
     for (const group of groups) {
       if (group.length >= MIN_REPEAT_TO_COLLAPSE) {
         for (let i = 0; i < MAX_REPEATED_SAMPLE; i++) {
-          const childOutput = serialize(group[i], depth + 1, false)
+          const childOutput = serialize(group[i], depth + 1, false, filterDuplicates)
           if (childOutput) childLines.push(childOutput)
         }
         const omittedCount = group.length - MAX_REPEATED_SAMPLE
@@ -422,7 +427,7 @@
         childLines.push(`${childIndent}… [${omittedCount} more similar <${summary}> omitted]`)
       } else {
         for (const child of group) {
-          const childOutput = serialize(child, depth + 1, false)
+          const childOutput = serialize(child, depth + 1, false, filterDuplicates)
           if (childOutput) childLines.push(childOutput)
         }
       }
@@ -470,53 +475,67 @@
     host.style.cssText = 'position:fixed; bottom:16px; right:16px; z-index:2147483647;'
     const shadow = host.attachShadow({ mode: 'open' })
 
-    shadow.innerHTML = `
-      <style>
-        .panel {
-          font: 13px/1.4 system-ui, sans-serif;
-          background: #1e1e1e;
-          color: #eee;
-          border: 1px solid #444;
-          border-radius: 8px;
-          padding: 10px 12px;
-          box-shadow: 0 4px 16px rgba(0,0,0,0.4);
-          max-width: 320px;
-        }
-        .selector { color: #7fd; word-break: break-all; margin-bottom: 8px; }
-        .hint { color: #999; margin-bottom: 8px; }
-        .row { display: flex; gap: 6px; }
-        button {
-          flex: 1;
-          font: inherit;
-          padding: 6px 10px;
-          border: 1px solid #555;
-          border-radius: 5px;
-          background: #2a2a2a;
-          color: #eee;
-          cursor: pointer;
-        }
-        button:hover { background: #383838; }
-        button:disabled { opacity: 0.4; cursor: default; }
-        button.active { border-color: #4df; color: #4df; }
-      </style>
-      <div class="panel">
-        <div class="selector"></div>
-        <div class="hint"></div>
-        <div class="row">
-          <button data-action="zoom-out">↑ Out</button>
-          <button data-action="zoom-in">↓ In</button>
-          <button data-action="copy">Copy</button>
-          <button data-action="cancel">✕</button>
-        </div>
-      </div>
+    const style = document.createElement('style')
+    style.textContent = `
+      .panel {
+        font: 13px/1.4 system-ui, sans-serif;
+        background: #1e1e1e;
+        color: #eee;
+        border: 1px solid #444;
+        border-radius: 8px;
+        padding: 10px 12px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+        max-width: 320px;
+      }
+       .selector { color: #7fd; word-break: break-all; margin-bottom: 8px; }
+       .hint { color: #999; margin-bottom: 8px; }
+       .option { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+       .row { display: flex; gap: 6px; }
+      button {
+        flex: 1;
+        font: inherit;
+        padding: 6px 10px;
+        border: 1px solid #555;
+        border-radius: 5px;
+        background: #2a2a2a;
+        color: #eee;
+        cursor: pointer;
+      }
+      button:hover { background: #383838; }
+      button:disabled { opacity: 0.4; cursor: default; }
+      button.active { border-color: #4df; color: #4df; }
     `
 
-    const selectorLabel = shadow.querySelector('.selector')
-    const hintLabel = shadow.querySelector('.hint')
-    const zoomOutButton = shadow.querySelector('[data-action="zoom-out"]')
-    const zoomInButton = shadow.querySelector('[data-action="zoom-in"]')
-    const copyButton = shadow.querySelector('[data-action="copy"]')
-    const cancelButton = shadow.querySelector('[data-action="cancel"]')
+    const panel = document.createElement('div')
+    panel.className = 'panel'
+    const selectorLabel = document.createElement('div')
+    selectorLabel.className = 'selector'
+    const hintLabel = document.createElement('div')
+    hintLabel.className = 'hint'
+    const filterDuplicatesLabel = document.createElement('label')
+    filterDuplicatesLabel.className = 'option'
+    const filterDuplicatesInput = document.createElement('input')
+    filterDuplicatesInput.type = 'checkbox'
+    filterDuplicatesInput.checked = true
+    filterDuplicatesLabel.append(filterDuplicatesInput, 'Filter hidden duplicates')
+    const row = document.createElement('div')
+    row.className = 'row'
+
+    function makeButton(action, label) {
+      const button = document.createElement('button')
+      button.dataset.action = action
+      button.textContent = label
+      return button
+    }
+
+    const zoomOutButton = makeButton('zoom-out', '↑ Out')
+    const zoomInButton = makeButton('zoom-in', '↓ In')
+    const copyButton = makeButton('copy', 'Copy')
+    const cancelButton = makeButton('cancel', '✕')
+
+    row.append(zoomOutButton, zoomInButton, copyButton, cancelButton)
+    panel.append(selectorLabel, hintLabel, filterDuplicatesLabel, row)
+    shadow.append(style, panel)
 
     function clearOutlines() {
       document.querySelectorAll('[data-slim-html-outline]').forEach((el) => {
@@ -614,7 +633,7 @@
     })
 
     copyButton.addEventListener('click', () => {
-      const output = serialize(currentTarget, 0, true)
+      const output = serialize(currentTarget, 0, true, filterDuplicatesInput.checked)
       GM_setClipboard(output)
       console.log(output)
       cleanup()

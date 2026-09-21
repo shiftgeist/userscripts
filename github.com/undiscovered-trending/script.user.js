@@ -12,8 +12,8 @@
 // @description Hide starred repos in trending and remove slob
 // @license     GNU GPLv3
 //
-// @updateURL   https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/github.com/undiscovered-trending/userscript.js
-// @downloadURL https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/github.com/undiscovered-trending/userscript.js
+// @updateURL   https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/github.com/undiscovered-trending/script.user.js
+// @downloadURL https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/github.com/undiscovered-trending/script.user.js
 // ==/UserScript==
 
 const ignoreKeywordsInText = [
