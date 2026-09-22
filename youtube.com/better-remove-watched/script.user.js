@@ -2,7 +2,7 @@
 // @name        Watch later: Better remove watched
 // @namespace   shiftgeist
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=youtube.com
-// @version     20260922.0
+// @version     20260922.1
 //
 // @match       https://*.youtube.com/*
 // @grant       none
@@ -18,7 +18,7 @@
 ;(async () => {
   'use strict'
 
-  const identifier = '{userscript BRW}'
+  const identifier = '{user.js BRW}'
   const debug = window.localStorage.getItem('userscript-debug') === 'true'
   const mobile = window.location.href.includes('m.youtube.com')
   const getThreshold = () =>
@@ -287,7 +287,7 @@ white-space: nowrap;
 
     function clickAction() {
       const { menuItems, removeAction } = findRemoveAction()
-      if (!(removeAction instanceof HTMLElement)) return
+      if (!(removeAction instanceof HTMLElement)) return false
 
       clearTimeout(menuTimeout)
       observer.disconnect()
@@ -295,9 +295,12 @@ white-space: nowrap;
       const removalWait = waitForRemoval(video, { menuButton, menuItems, percent, title, video })
       removeAction.click()
       resolveRemoval(removalWait)
+      return true
     }
 
     const menuTimeout = setTimeout(() => {
+      if (clickAction()) return
+
       observer.disconnect()
       const { menuItems } = findRemoveAction()
       const availableActions = menuItems.map(evaluateMenuItem)
@@ -368,6 +371,40 @@ white-space: nowrap;
     return null
   }
 
+  function getPlaylistVideoCount() {
+    const text = Array.from(
+      document.querySelectorAll('ytd-playlist-byline-renderer yt-formatted-string.byline-item')
+    )
+      .map(element => element.textContent?.trim() || '')
+      .find(item => /\d/.test(item))
+    const count = Number(text?.replace(/\D/g, ''))
+
+    return Number.isSafeInteger(count) && count > 0 ? count : null
+  }
+
+  function scrollForMoreVideos(videoCount) {
+    return new Promise(resolve => {
+      let finished = false
+      const selector = mobile ? 'ytm-playlist-video-renderer' : 'ytd-playlist-video-renderer'
+      const observer = new MutationObserver(() => {
+        if (document.querySelectorAll(selector).length > videoCount) finish(true)
+      })
+      const timeout = setTimeout(() => finish(false), 5000)
+
+      function finish(loaded) {
+        if (finished) return
+        finished = true
+        clearTimeout(timeout)
+        observer.disconnect()
+        resolve(loaded)
+      }
+
+      observer.observe(document.body, { childList: true, subtree: true })
+      l.debug('Scrolling for more playlist videos', { videoCount })
+      window.scrollTo(0, document.documentElement.scrollHeight)
+    })
+  }
+
   async function removeHandler(event, cursor = false, remaining = Infinity) {
     const batchButton = remaining === Infinity ? removeButton : debugRemoveButton
     l.debug('init removeHandler()', {
@@ -388,7 +425,7 @@ white-space: nowrap;
       )
     )
 
-    l.log(`Found "${videos.length}" videos`)
+    l.debug(`Found "${videos.length}" videos`)
 
     const videosStarted = videos.filter(v => {
       const title = v.querySelector('#video-title')?.textContent?.trim()
@@ -424,6 +461,12 @@ white-space: nowrap;
     } else if (remaining !== Infinity) {
       debugRemoveButton.textContent = '(debug) Remove watched 1x'
     } else {
+      const playlistVideoCount = getPlaylistVideoCount()
+      if (playlistVideoCount !== null && videos.length < playlistVideoCount) {
+        l.log(`Loaded "${videos.length}" of "${playlistVideoCount}" playlist videos`)
+        if (await scrollForMoreVideos(videos.length)) return removeHandler(event)
+      }
+
       // finished
       removeButton.parentElement.click()
       removeButton.textContent = 'All videos removed'
