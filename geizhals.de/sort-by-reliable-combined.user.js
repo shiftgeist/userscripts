@@ -2,11 +2,11 @@
 // @name        Geizhals: Sort by reliable rating
 // @namespace   shiftgeist
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=geizhals.de
-// @version     20260918.0
+// @version     20260924.1241
 //
-// @match       https://www.geizhals.de/?cat=*
-// @match       https://www.geizhals.at/?cat=*
-// @match       https://www.geizhals.eu/?cat=*
+// @match       https://*.geizhals.de/?cat=*
+// @match       https://*.geizhals.at/?cat=*
+// @match       https://*.geizhals.eu/?cat=*
 // @grant       GM_registerMenuCommand
 // @run-at      document-idle
 //
@@ -22,47 +22,13 @@
 
   const CONFIDENCE_Z = 1.96
 
-  // The final score combines:
-  // - 80% reliable customer rating
-  // - 20% original Geizhals popularity order
-  const RATING_WEIGHT = 0.8
+  const RATING_WEIGHT = 0.6
+  const TEST_WEIGHT = 0.2
+  const DEFAULT_WEIGHT = 0.2
 
   const INDICATOR_ID = 'geizhals-reliable-rating-indicator'
-  const STYLE_ID = 'geizhals-reliable-rating-style'
   const originalPositions = new WeakMap()
-
-  function installStyles() {
-    if (document.getElementById(STYLE_ID)) {
-      return
-    }
-
-    const style = document.createElement('style')
-    style.id = STYLE_ID
-    style.textContent = `
-      #${INDICATOR_ID} {
-        align-items: center;
-        background: #e8f5e9;
-        border: 1px solid #66a96b;
-        border-radius: 999px;
-        color: #1f6227;
-        display: inline-flex;
-        font-size: 0.8125rem;
-        font-weight: 600;
-        line-height: 1.25;
-        padding: 0.35rem 0.65rem;
-        white-space: nowrap;
-      }
-
-      #${INDICATOR_ID}::before {
-        content: "★";
-        font-size: 1rem;
-        line-height: 1;
-        margin-right: 0.35rem;
-      }
-    `
-
-    document.head.append(style)
-  }
+  let isSortEnabled = true
 
   function isVisible(element) {
     const styles = window.getComputedStyle(element)
@@ -155,6 +121,31 @@
     return { rating, reviewCount }
   }
 
+  function getTestData(item) {
+    const label = item.querySelector('.metascore')?.getAttribute('aria-label') ?? ''
+    const scoreMatch = label.match(/(\d+(?:[.,]\d+)?)\s*\/\s*100/)
+    const countMatch = label.match(/(\d+)\s*(?:x\s*)?tests?\b/i)
+
+    if (!scoreMatch || !countMatch) {
+      return null
+    }
+
+    const score = Number.parseFloat(scoreMatch[1].replace(',', '.'))
+    const testCount = Number.parseInt(countMatch[1], 10)
+
+    if (
+      !Number.isFinite(score)
+      || score < 0
+      || score > 100
+      || !Number.isFinite(testCount)
+      || testCount < 1
+    ) {
+      return null
+    }
+
+    return { score: score / 20, testCount }
+  }
+
   // This score penalizes high ratings with very few reviews.
   function getReliableRatingScore(rating, reviewCount) {
     const proportion = rating / 5
@@ -187,7 +178,7 @@
     return originalPositions.get(item)
   }
 
-  function updateIndicator(resultType, productCount, ratedProductCount) {
+  function updateIndicator(productCount, ratedProductCount, testedProductCount) {
     const controls = document.querySelector(
       '.listcontrols-filter-and-pagination .listcontrols-pagination'
     ) ?? document.querySelector('.listcontrols-filter-and-pagination')
@@ -199,28 +190,89 @@
     let indicator = document.getElementById(INDICATOR_ID)
 
     if (!indicator) {
-      indicator = document.createElement('span')
+      indicator = document.createElement('button')
       indicator.id = INDICATOR_ID
-      indicator.setAttribute('role', 'status')
+      indicator.setAttribute('type', 'button')
+      indicator.addEventListener('click', toggleSort)
       controls.prepend(indicator)
     }
 
     const ratingPercent = Math.round(RATING_WEIGHT * 100)
-    const popularityPercent = 100 - ratingPercent
-    const text = `${resultType}: Bewertung + Beliebtheit `
-      + `(${ratedProductCount}/${productCount})`
+    const testPercent = Math.round(TEST_WEIGHT * 100)
+    const defaultPercent = Math.round(DEFAULT_WEIGHT * 100)
+    const text = isSortEnabled
+      ? `★ Sortiert ${ratingPercent}:${testPercent}:${defaultPercent}`
+      : 'Sortierung aus'
 
     if (indicator.textContent !== text) {
       indicator.textContent = text
     }
 
-    indicator.title = `${ratingPercent}% Bewertungs-Score und `
-      + `${popularityPercent}% ursprüngliche Geizhals-Beliebtheit. `
-      + 'Der Bewertungs-Score nutzt eine 95%-Vertrauensgrenze. '
-      + 'Produkte ohne Kundenbewertung stehen am Ende.'
+    indicator.setAttribute(
+      'style',
+      `background:${isSortEnabled ? '#e8f5e9' : '#fdeaea'};`
+        + `border:1px solid ${isSortEnabled ? '#66a96b' : '#d66a6a'};`
+        + 'border-radius:999px;cursor:pointer;display:inline-flex;'
+        + `color:${isSortEnabled ? '#1f6227' : '#a52a2a'};`
+        + 'font-size:.75rem;font-weight:600;line-height:1.25;padding:.2rem .45rem;'
+        + 'visibility:visible;white-space:nowrap'
+    )
+    indicator.setAttribute('aria-pressed', String(isSortEnabled))
+    indicator.title = isSortEnabled
+      ? `${ratedProductCount} von ${productCount} mit Bewertung. `
+        + `${testedProductCount} von ${productCount} mit Test-Score. `
+        + `${ratingPercent}% Bewertungs-Score, ${testPercent}% Test-Score und `
+        + `${defaultPercent}% ursprüngliche Sortierung. `
+        + 'Klicken um Sortierung zu deaktivieren.'
+      : 'Sortierung ist deaktiviert. Klicken um Sortierung zu aktivieren.'
+  }
+
+  function restoreResults() {
+    const results = getActiveResults()
+
+    if (!results) {
+      return
+    }
+
+    const restoredItems = [...results.items].sort(
+      (left, right) => getOriginalPosition(left, 0) - getOriginalPosition(right, 0)
+    )
+
+    const alreadyRestored = restoredItems.every(
+      (item, index) => item === results.items[index]
+    )
+
+    if (alreadyRestored) {
+      return
+    }
+
+    const fragment = document.createDocumentFragment()
+
+    restoredItems.forEach((item) => {
+      fragment.append(item)
+    })
+
+    results.container.append(fragment)
+  }
+
+  function toggleSort() {
+    isSortEnabled = !isSortEnabled
+
+    if (isSortEnabled) {
+      scheduleSort()
+      return
+    }
+
+    window.clearTimeout(sortTimer)
+    restoreResults()
+    updateIndicator(0, 0, 0)
   }
 
   function sortResults() {
+    if (!isSortEnabled) {
+      return
+    }
+
     const results = getActiveResults()
 
     if (!results) {
@@ -231,6 +283,7 @@
 
     const rankedItems = results.items.map((item, currentPosition) => {
       const ratingData = getRatingData(item)
+      const testData = getTestData(item)
       const originalPosition = getOriginalPosition(item, currentPosition)
       const popularityScore = getPopularityScore(
         originalPosition,
@@ -239,23 +292,37 @@
       const ratingScore = ratingData
         ? getReliableRatingScore(ratingData.rating, ratingData.reviewCount)
         : null
+      const testScore = testData
+        ? getReliableRatingScore(testData.score, testData.testCount)
+        : null
+
+      const components = [
+        ratingScore === null ? null : { score: ratingScore, weight: RATING_WEIGHT },
+        testScore === null ? null : { score: testScore, weight: TEST_WEIGHT },
+        { score: popularityScore, weight: DEFAULT_WEIGHT }
+      ].filter(Boolean)
+      const scoreWeight = components.reduce(
+        (total, { weight }) => total + weight,
+        0
+      )
 
       return {
         item,
         originalPosition,
         popularityScore,
         ratingScore,
-        score: ratingScore === null
+        testScore,
+        score: scoreWeight === DEFAULT_WEIGHT
           ? null
-          : ratingScore * RATING_WEIGHT
-            + popularityScore * (1 - RATING_WEIGHT)
+          : components.reduce((total, { score, weight }) => total + score * weight, 0)
+            / scoreWeight
       }
     })
 
     updateIndicator(
-      results.type,
       productCount,
-      rankedItems.filter(({ ratingScore }) => ratingScore !== null).length
+      rankedItems.filter(({ ratingScore }) => ratingScore !== null).length,
+      rankedItems.filter(({ testScore }) => testScore !== null).length
     )
 
     const sortedItems = [...rankedItems].sort((left, right) => {
@@ -278,7 +345,11 @@
       }
 
       if (right.ratingScore !== left.ratingScore) {
-        return right.ratingScore - left.ratingScore
+        return (right.ratingScore ?? 0) - (left.ratingScore ?? 0)
+      }
+
+      if (right.testScore !== left.testScore) {
+        return (right.testScore ?? 0) - (left.testScore ?? 0)
       }
 
       return left.originalPosition - right.originalPosition
@@ -312,15 +383,17 @@
   let sortTimer
 
   function scheduleSort() {
+    if (!isSortEnabled) {
+      updateIndicator(0, 0, 0)
+      return
+    }
+
     window.clearTimeout(sortTimer)
 
     sortTimer = window.setTimeout(() => {
       sortResults()
     }, 150)
   }
-
-  installStyles()
-
   if (typeof GM_registerMenuCommand === 'function') {
     GM_registerMenuCommand(
       'Geizhals: Nach Bewertung und Beliebtheit sortieren',
