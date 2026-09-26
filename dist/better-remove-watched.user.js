@@ -1,0 +1,1 @@
+../youtube.com/better-remove-watched/script.user.js
