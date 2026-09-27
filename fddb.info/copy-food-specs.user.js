@@ -12,8 +12,8 @@
 // @description Shows button to copy specs of food with tab seperation
 // @license     GNU GPLv3
 //
-// @updateURL   https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/${PATH}
-// @downloadURL https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/${PATH}
+// @updateURL   https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/fddb.info/copy-food-specs.user.js
+// @downloadURL https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/fddb.info/copy-food-specs.user.js
 // ==/UserScript==
 ;(() => {
   'use strict'
