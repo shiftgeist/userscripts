@@ -2,7 +2,7 @@
 // @name        DOM Tools: Slim HTML Copier
 // @namespace   shiftgeist
 // @icon        https://fav.farm/📋
-// @version     20260921.194741
+// @version     20260930.1732
 //
 // @match       *://*/*
 // @grant       GM_registerMenuCommand
@@ -652,6 +652,20 @@
 
   GM_registerMenuCommand('Copy slim HTML (whole page)', () => {
     const output = serialize(document.body, 0, true)
+    GM_setClipboard(output)
+    console.log(output)
+  })
+
+  GM_registerMenuCommand('Paste HTML → copy slim HTML', () => {
+    const html = prompt('Paste HTML to convert to Slim HTML')
+    if (html === null || !html.trim()) return
+
+    const source = new DOMParser().parseFromString(html, 'text/html')
+    const elements = Array.from(source.body.children)
+    const output = elements.length === 1
+      ? serialize(elements[0])
+      : elements.map((element) => serialize(element)).filter(Boolean).join('\n')
+
     GM_setClipboard(output)
     console.log(output)
   })
