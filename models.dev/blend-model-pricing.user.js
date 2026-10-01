@@ -2,7 +2,7 @@
 // @name        Blend Model Pricing
 // @namespace   shiftgeist
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=models.dev
-// @version     0.0.1
+// @version     0.0.2
 //
 // @match       https://models.dev/*
 // @grant       none
@@ -73,15 +73,20 @@
   function main(table) {
     log('Target element found:', table)
 
-    const priceCellTh = $('thead > tr > th:nth-child(5)', table)
-    log('priceCellTh', priceCellTh)
+    const thCells = $$('thead > tr > th', table)
+    log('thCells', thCells)
+
+    const priceCellTh = thCells.find(v => v.innerText.trim().toLowerCase() === 'price')
+    log('priceCellTh', priceCellTh, thCells.indexOf(priceCellTh))
 
     const blendTh = createElement('th', { scope: 'col', innerText: 'Blend' })
     blendTh.className = 'sortable'
     blendTh.dataset.type = 'number'
     priceCellTh.after(blendTh)
 
-    const priceCells = $$('tbody > tr > td:nth-child(5)', table)
+    blendTh.append(priceCellTh.childNodes[1].cloneNode())
+
+    const priceCells = $$(`tbody > tr > td:nth-child(${thCells.indexOf(priceCellTh) + 1})`, table)
     log('priceCells', priceCells)
 
     priceCells.forEach(cell => {
@@ -97,6 +102,7 @@
       const blendTd = createElement('td', { innerText: format })
       blendTd.dataset.sort = `${blended.toFixed(2)}`
 
+      cell.dataset.originalSort = cell.dataset.sort
       cell.dataset.sort = `${blended.toFixed(2)}`
 
       cell.after(blendTd)
