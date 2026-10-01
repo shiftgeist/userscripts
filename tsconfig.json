@@ -7,8 +7,9 @@
     "noEmit": true,
     "strict": false,
     "types": [
-      "@violentmonkey/types"
+      "@violentmonkey/types",
+      "node"
     ],
-    "lib": ["DOM", "ES2019"]
+    "lib": ["DOM", "ES2023"]
   }
 }

@@ -5,10 +5,10 @@ This repository contains browser userscripts. Each script uses a metadata header
 ## Language
 
 **Userscript header**:
-The metadata block at the start of a userscript.
+The metadata block at the start of a userscript. Details on how: read README.md
 
-**Release version**:
+**Timestamp**:
 The `@timestamp` value in a userscript header.
 It uses `YYYYMMDD.HHMM` in local time. (`date '+%Y%m%d.%H%M'`)
 The author updates it for every source edit.
-_Avoid_: Version number, build number
+_Avoid_: Version number, build number, setting @version

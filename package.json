@@ -7,8 +7,9 @@
   "type": "module",
   "scripts": {
     "postinstall": "dprint check &>/dev/null",
-    "serve": "pnpx serve .",
+    "serve": "pnpx serve -l 4321 .",
     "dev": "pnpm run serve",
+    "test": "node --test",
     "update-sources": "node ./.scripts/update-sources.js",
     "dprint": "dprint fmt",
     "fmt": "pnpm run update-sources && pnpm run dprint"
