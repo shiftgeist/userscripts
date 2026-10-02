@@ -21,13 +21,13 @@
 ;(() => {
   'use strict'
 
+  const id = '[${NAME}]'
   const debug = window.localStorage.getItem('debug') === 'true'
   const $ = (selector, parent = document) => parent.querySelector(selector)
   const $$ = (selector, parent = document) => [...parent.querySelectorAll(selector)]
 
-  function log(...params) {
-    if (debug) console.debug('[${NAME}]', ...params)
-  }
+  const log = (...params) => debug && console.debug(id, ...params)
+  const error = (...params) => debug && console.error(id, ...params)
 
   function createElement(tagName, properties = {}, children = []) {
     const element = document.createElement(tagName)
@@ -53,5 +53,9 @@
     log('Target element found:', element)
   }
 
-  waitForElement('${SELECTOR}', main)
+  try {
+    waitForElement('${SELECTOR}', main)
+  } catch (e) {
+    error(e)
+  }
 })()
