@@ -13,6 +13,7 @@ const files = await readdir(rootPath, { recursive: true, withFileTypes: true })
 
 const sources = files.filter(v =>
   v.isFile() && v.name.includes('.user.js') && !v.parentPath.includes('/node_modules/')
+  && !v.parentPath.includes('.template')
   && !v.parentPath.includes('/.git/')
 ).map(v => {
   const path = join(v.parentPath, v.name)

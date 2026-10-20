@@ -6,13 +6,13 @@
   "author": "shiftgeist",
   "type": "module",
   "scripts": {
-    "postinstall": "dprint check &>/dev/null",
+    "postinstall": "pnpm run check",
     "serve": "pnpx serve -l 4321 .",
     "dev": "pnpm run serve",
     "test": "node --test",
     "update-sources": "node ./.scripts/update-sources.js",
-    "dprint": "dprint fmt",
-    "fmt": "pnpm run update-sources && pnpm run dprint"
+    "check": "pnpm run update-sources && dprint check &>/dev/null",
+    "fmt": "pnpm run update-sources && dprint fmt"
   },
   "devDependencies": {
     "@tsconfig/recommended": "^1.0.13",

@@ -14,8 +14,8 @@
 // @license     GNU GPLv3
 //
 // @homepage    https://github.com/shiftgeist/userscripts
-// @updateURL   https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/${PATH}.user.js
-// @downloadURL https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/${PATH}.user.js
+// @updateURL   https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/.template/script.user.js
+// @downloadURL https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/.template/script.user.js
 // @supportURL  https://github.com/shiftgeist/userscripts/issues
 // ==/UserScript==
 ;(() => {

@@ -16,6 +16,26 @@ https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/_devtoo
 
 <small>[_devtools/copy-slim-html-selector.user.js](_devtools/copy-slim-html-selector.user.js)</small>
 
+### Jira Ticket → Markdown
+
+> Copies the open Jira ticket as Markdown, its issue key, or a git branch name
+
+```
+https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/atlassian.net/jira-ticket.user.js
+```
+
+<small>[atlassian.net/jira-ticket.user.js](atlassian.net/jira-ticket.user.js)</small>
+
+### DeepL: Text Chunker
+
+> Chunk long text, step through chunks, copy all translations
+
+```
+https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/deepl.com/text-chunker.user.js
+```
+
+<small>[deepl.com/text-chunker.user.js](deepl.com/text-chunker.user.js)</small>
+
 ### Dribbble: Sort by Likes
 
 > Sorts Dribbble search results by like count, descending
@@ -56,6 +76,16 @@ https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/koeln-b
 
 <small>[koeln-bonn-airport.de/arrival-departure-bussy-flight-window.user.js](koeln-bonn-airport.de/arrival-departure-bussy-flight-window.user.js)</small>
 
+### Blend Model Pricing
+
+> Show the combined pricing of input and output tokens per 1m
+
+```
+https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/models.dev/blend-model-pricing.user.js
+```
+
+<small>[models.dev/blend-model-pricing.user.js](models.dev/blend-model-pricing.user.js)</small>
+
 ### YouTube: Keep Controls Visible on Pause
 
 > ${DESCRIPTION}
@@ -85,6 +115,16 @@ https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/multi/p
 ```
 
 <small>[multi/price-list/script.user.js](multi/price-list/script.user.js)</small>
+
+### WhatsApp: Chat Text and Image URL Exporter
+
+> Read the open WhatsApp Web chat while you scroll, cache it and export it as JSON.
+
+```
+https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/web.whatsapp.com/export/script.user.js
+```
+
+<small>[web.whatsapp.com/export/script.user.js](web.whatsapp.com/export/script.user.js)</small>
 
 ### Watch later: Better remove watched
 
