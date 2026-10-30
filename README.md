@@ -16,6 +16,16 @@ https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/_devtoo
 
 <small>[_devtools/copy-slim-html-selector.user.js](_devtools/copy-slim-html-selector.user.js)</small>
 
+### Ampido Sorting
+
+> Adds sorting (distance, rating, reviews, price) to Ampido parking search results
+
+```
+https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/ampido-sorting/script.user.js
+```
+
+<small>[ampido.com/sort.user.js](ampido.com/sort.user.js)</small>
+
 ### Jira Ticket → Markdown
 
 > Copies the open Jira ticket as Markdown, its issue key, or a git branch name
