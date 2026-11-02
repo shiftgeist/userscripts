@@ -2,7 +2,7 @@
 // @name        Jira Ticket → Markdown
 // @namespace   shiftgeist
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=atlassian.net
-// @version     0.0.1
+// @version     0.0.2
 //
 // @match       https://*.atlassian.net/jira/software/projects/*/boards/*
 // @match       https://*.atlassian.net/browse/*
@@ -22,6 +22,7 @@
 'use strict'
 
 const BRANCH_TITLE_MAX_LENGTH = 40
+let lastOpenedIssueKey = null
 
 // --- Jira Extraction Functions ---
 
@@ -466,7 +467,7 @@ async function handleCopyMarkdownClick(button) {
 }
 
 async function handleCopyIssueKeyClick(button) {
-  const issueKey = getIssueKey(getIssueRoot())
+  const issueKey = getIssueKey(getIssueRoot()) || lastOpenedIssueKey
   if (!issueKey) {
     showTemporaryButtonText(button, 'No issue found', 2000)
     return
@@ -498,6 +499,18 @@ async function handleCopyBranchNameClick(button) {
 }
 
 function init() {
+  const rememberOpenIssue = () => {
+    const issueKey = getIssueKey(getIssueRoot())
+    if (issueKey) lastOpenedIssueKey = issueKey
+  }
+  const issueObserver = new MutationObserver(rememberOpenIssue)
+  issueObserver.observe(document.body, {
+    childList: true,
+    subtree: true,
+    characterData: true
+  })
+  rememberOpenIssue()
+
   const issueKeyButton = createCopyButton('🪪 ID', '88px')
   issueKeyButton.addEventListener('click', () => handleCopyIssueKeyClick(issueKeyButton))
   document.body.appendChild(issueKeyButton)
