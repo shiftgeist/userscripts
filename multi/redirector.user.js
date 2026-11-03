@@ -1,0 +1,301 @@
+// ==UserScript==
+// @name        Redirector
+// @namespace   shiftgeist
+// @icon        https://fav.farm/↗️
+// @version     0.0.1
+// @timestamp   20261103.0000
+//
+// @match       http://*/*
+// @match       https://*/*
+// @grant       GM_openInTab
+// @grant       window.close
+// @grant       GM_getValue
+// @grant       GM_setValue
+// @grant       GM_registerMenuCommand
+// @run-at      document-start
+// @noframes
+//
+// @author      shiftgeist
+// @description Redirect pages with a configurable list of URLs.
+// @license     GNU GPLv3
+//
+// @homepage    https://github.com/shiftgeist/userscripts
+// @updateURL   https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/multi/redirector.user.js
+// @downloadURL https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/multi/redirector.user.js
+// @supportURL  https://github.com/shiftgeist/userscripts/issues
+// ==/UserScript==
+;(() => {
+  'use strict'
+
+  let timer
+  let editor
+
+  const id = '[Redirector]'
+  const log = (...params) => {
+    try {
+      if (window.localStorage.getItem('debug') === 'true') console.debug(id, ...params)
+    } catch {}
+  }
+  const error = (...params) => console.error(id, ...params)
+
+  function validateRule(rule) {
+    if (!rule || typeof rule !== 'object' || Array.isArray(rule)) {
+      throw new Error('Each redirect must be an object.')
+    }
+    const { from, to, delay = 0, clearHistory = false, match = 'exact' } = rule
+    if (typeof from !== 'string' || typeof to !== 'string') {
+      throw new Error('Each redirect needs from and to URLs.')
+    }
+    const source = new URL(from)
+    const destination = new URL(to)
+    if (![source, destination].every(url => ['http:', 'https:'].includes(url.protocol))) {
+      throw new Error('The URLs must use HTTP or HTTPS.')
+    }
+    if (!Number.isFinite(delay) || delay < 0 || delay * 1000 > 2147483647) {
+      throw new Error('The delay must be a non-negative number within the timer limit.')
+    }
+    if (typeof clearHistory !== 'boolean') {
+      throw new Error('The clearHistory option must be a boolean.')
+    }
+    if (!['exact', 'hostname'].includes(match)) {
+      throw new Error('The match option must be exact or hostname.')
+    }
+    return { source, destination, delay, clearHistory, match }
+  }
+
+  function hostname(url) {
+    return url.hostname.replace(/^www\./, '')
+  }
+
+  function addDefaults() {
+    if (GM_getValue('smallwebDefaultsAdded', false)) return
+    const redirects = GM_getValue('redirects', [])
+    if (!Array.isArray(redirects)) throw new Error('The stored list must be an array.')
+    for (const [domain, delay] of [['instagram.com', 600], ['youtube.com', 1200]]) {
+      const from = `https://${domain}/`
+      const exists = redirects.some(rule => {
+        try {
+          const { source, match } = validateRule(rule)
+          return match === 'hostname' && hostname(source) === domain
+        } catch {
+          return false
+        }
+      })
+      if (!exists) {
+        redirects.push({ from, to: 'https://kagi.com/smallweb', delay, clearHistory: true,
+          match: 'hostname' })
+      }
+    }
+    GM_setValue('redirects', redirects)
+    GM_setValue('smallwebDefaultsAdded', true)
+  }
+
+  function createElement(tag, properties = {}, children = []) {
+    const element = document.createElement(tag)
+    Object.assign(element, properties)
+    element.append(...children)
+    return element
+  }
+
+  function editRedirects() {
+    if (editor) {
+      editor.focus()
+      return
+    }
+    if (!document.body) {
+      document.addEventListener('DOMContentLoaded', editRedirects, { once: true })
+      return
+    }
+
+    window.clearTimeout(timer)
+    const host = createElement('div')
+    const shadow = host.attachShadow({ mode: 'closed' })
+    const style = createElement('style', {
+      textContent: `
+        :host { all: initial; }
+        * { box-sizing: border-box; }
+        dialog { width: min(960px, calc(100vw - 32px)); max-height: calc(100vh - 32px);
+          padding: 24px; border: 1px solid #bbb; border-radius: 12px;
+          background: #fff; color: #202124; font: 15px/1.5 system-ui, sans-serif; }
+        dialog::backdrop { background: #0008; }
+        h2 { margin: 0 0 12px; }
+        p { margin: 0 0 16px; }
+        fieldset { display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+          margin: 0 0 16px; padding: 16px; border: 1px solid #ccc; border-radius: 8px; }
+        label { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+        label.checkbox { flex-direction: row; align-items: center; }
+        input, select { width: 100%; padding: 8px; border: 1px solid #888; border-radius: 4px;
+          background: #fff; color: #202124; font: inherit; }
+        input[type=checkbox] { width: auto; }
+        button { padding: 8px 14px; border: 1px solid #888; border-radius: 4px;
+          background: #f3f4f6; color: #202124; cursor: pointer; font: inherit; }
+        button[type=submit] { background: #185abc; border-color: #185abc; color: #fff; }
+        .actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+        .error { color: #b3261e; white-space: pre-wrap; }
+        @media (max-width: 640px) { fieldset { grid-template-columns: 1fr; } }
+      `
+    })
+    const title = createElement('h2', { id: 'redirector-title', textContent: 'Weiterleitungen' })
+    const help = createElement('p', {
+      textContent:
+        'Die erste passende Regel gilt. Domain-Regeln gelten für alle Pfade, auch mit www. Änderungen gelten ab dem nächsten Seitenaufruf. „Alten Tab schließen“ löscht nicht den Browserverlauf.'
+    })
+    const rows = createElement('div')
+    const message = createElement('p', { className: 'error' })
+    message.setAttribute('role', 'alert')
+    const fields = []
+    const form = document.createElement('form')
+    const dialog = document.createElement('dialog')
+    dialog.setAttribute('aria-labelledby', title.id)
+    let saved = false
+
+    function addRow(rule = {}) {
+      const from = createElement('input', { type: 'url', required: true, value: rule.from ?? '' })
+      const to = createElement('input', { type: 'url', required: true, value: rule.to ?? '' })
+      const delay = createElement('input', {
+        type: 'number',
+        min: '0',
+        max: '2147483.647',
+        step: 'any',
+        required: true,
+        value: String(rule.delay ?? 0)
+      })
+      const clearHistory = createElement('input', { type: 'checkbox',
+        checked: rule.clearHistory === true })
+      const match = createElement('select', {}, [
+        createElement('option', { value: 'exact', textContent: 'Exakte URL' }),
+        createElement('option', { value: 'hostname', textContent: 'Domain (mit und ohne www)' })
+      ])
+      Object.assign(match, { value: rule.match ?? 'exact' })
+      const remove = createElement('button', { type: 'button', textContent: 'Löschen' })
+      const row = createElement('fieldset', {}, [
+        createElement('legend', { textContent: 'Weiterleitung' }),
+        createElement('label', {}, ['Quell-URL', from]),
+        createElement('label', {}, ['Ziel-URL', to]),
+        createElement('label', {}, ['URL-Abgleich', match]),
+        createElement('label', {}, ['Verzögerung in Sekunden', delay]),
+        createElement('label', { className: 'checkbox' }, [clearHistory, 'Alten Tab schließen']),
+        remove
+      ])
+      const entry = { row, from, to, delay, clearHistory, match }
+      fields.push(entry)
+      remove.addEventListener('click', () => {
+        fields.splice(fields.indexOf(entry), 1)
+        row.remove()
+      })
+      rows.append(row)
+      return from
+    }
+
+    const add = createElement('button', { type: 'button', textContent: 'Hinzufügen' })
+    const cancel = createElement('button', { type: 'button', textContent: 'Abbrechen' })
+    const save = createElement('button', { type: 'submit', textContent: 'Speichern' })
+    add.addEventListener('click', () => addRow({ from: window.location.href }).focus())
+    cancel.addEventListener('click', () => dialog.close())
+    form.addEventListener('submit', event => {
+      event.preventDefault()
+      message.textContent = ''
+      try {
+        const redirects = fields.map(({ from, to, delay, clearHistory, match }, index) => {
+          const rule = {
+            from: from.value.trim(),
+            to: to.value.trim(),
+            delay: Number(delay.value),
+            clearHistory: clearHistory.checked,
+            match: match.value
+          }
+          try {
+            validateRule(rule)
+          } catch (e) {
+            throw new Error(`Weiterleitung ${index + 1}: ${e.message}`)
+          }
+          return rule
+        })
+        GM_setValue('redirects', redirects)
+        saved = true
+        dialog.close()
+      } catch (e) {
+        error(e)
+        message.textContent = `Speichern fehlgeschlagen: ${e.message}`
+      }
+    })
+    dialog.addEventListener('close', () => {
+      host.remove()
+      editor = undefined
+      if (!saved) {
+        try {
+          main()
+        } catch (e) {
+          error(e)
+        }
+      }
+    }, { once: true })
+
+    try {
+      const redirects = GM_getValue('redirects', [])
+      if (!Array.isArray(redirects)) throw new Error('The stored list must be an array.')
+      redirects.forEach(rule => addRow(rule ?? {}))
+    } catch (e) {
+      error(e)
+      message.textContent = `Liste konnte nicht vollständig geöffnet werden: ${e.message}`
+    }
+    form.append(title, help, rows, message,
+      createElement('div', { className: 'actions' }, [add, cancel, save]))
+    dialog.append(form)
+    shadow.append(style, dialog)
+    document.body.append(host)
+    editor = dialog
+    dialog.showModal()
+  }
+
+  function redirect(source, destination, clearHistory) {
+    if (window.location.href !== source.href) return
+
+    try {
+      log('Redirect:', source.href, destination.href)
+      if (clearHistory) {
+        const tab = GM_openInTab(destination.href, { active: true })
+        if (!tab) throw new Error('Could not open the destination tab.')
+        window.close()
+      } else {
+        window.location.replace(destination.href)
+      }
+    } catch (e) {
+      error(e)
+    }
+  }
+
+  function main() {
+    const redirects = GM_getValue('redirects', [])
+    if (!Array.isArray(redirects)) throw new Error('The stored list must be an array.')
+    for (const rule of redirects) {
+      try {
+        const { source, destination, delay, clearHistory, match } = validateRule(rule)
+        const current = new URL(window.location.href)
+        if (match === 'hostname'
+          ? hostname(source) !== hostname(current)
+          : source.href !== current.href) continue
+        if (destination.href === window.location.href) return
+
+        if (delay === 0) {
+          redirect(current, destination, clearHistory)
+        } else {
+          timer = window.setTimeout(() => redirect(current, destination, clearHistory),
+            delay * 1000)
+          window.addEventListener('pagehide', () => window.clearTimeout(timer), { once: true })
+        }
+        return
+      } catch (e) {
+        error(e)
+      }
+    }
+  }
+
+  try {
+    addDefaults()
+    GM_registerMenuCommand('Edit redirects', editRedirects)
+    main()
+  } catch (e) {
+    error(e)
+  }
+})()

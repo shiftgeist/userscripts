@@ -21,7 +21,7 @@ https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/_devtoo
 > Adds sorting (distance, rating, reviews, price) to Ampido parking search results
 
 ```
-https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/ampido-sorting/script.user.js
+https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/ampido.com/sort.user.js
 ```
 
 <small>[ampido.com/sort.user.js](ampido.com/sort.user.js)</small>
@@ -95,6 +95,16 @@ https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/models.
 ```
 
 <small>[models.dev/blend-model-pricing.user.js](models.dev/blend-model-pricing.user.js)</small>
+
+### Redirector
+
+> Redirect pages with a configurable list of URLs.
+
+```
+https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/multi/redirector.user.js
+```
+
+<small>[multi/redirector.user.js](multi/redirector.user.js)</small>
 
 ### YouTube: Keep Controls Visible on Pause
 

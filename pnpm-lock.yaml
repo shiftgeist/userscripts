@@ -171,7 +171,7 @@ importers:
         version: 1.0.13
       '@types/node':
         specifier: latest
-        version: 26.6.5
+        version: 26.6.6
       '@violentmonkey/types':
         specifier: ^0.3.4
         version: 0.3.4
@@ -181,8 +181,8 @@ packages:
   '@tsconfig/recommended@1.0.13':
     resolution: {integrity: sha512-sySRuBfMKyKO/j2ZAhR8kSembhjuPEV4Ra3AHtmWLq51+iGaudr45crPSzNC5b7/Ctrh9dfUpBuTlYrH6rM58Q==}
 
-  '@types/node@26.6.5':
-    resolution: {integrity: sha512-uMzsv9stDdofIZBx4UGh4Z9ZgXnGC9seRDscilBcTHAeOFk67MZg/k9bWVfO+bk4qZmG+l52hRnLwUiH2LnJTg==}
+  '@types/node@26.6.6':
+    resolution: {integrity: sha512-MzQj+8Kx3XI40OmUAE6Qoh58ZMNstNNMwn2nfd3qWsfe7nDNSqJNzes4njhz6AHwrSHOffSLwXU6yb474Q4aog==}
 
   '@violentmonkey/types@0.3.4':
     resolution: {integrity: sha512-4i8/8X4Dk/py+RWTdfJbQcQGOx7COossGrw3uhrNegqwuAtC6pBXpJMKcdkPxxJklxmnWPaX4kvB5hypZfhY4g==}
@@ -197,7 +197,7 @@ snapshots:
 
   '@tsconfig/recommended@1.0.13': {}
 
-  '@types/node@26.6.5':
+  '@types/node@26.6.6':
     dependencies:
       undici-types: 8.9.0
 
