@@ -21,7 +21,10 @@ _Avoid_: Script manifest
 
 **Timestamp**:
 The `@timestamp` value in a userscript header.
-It uses `YYYYMMDD.HHMM` in local time. (`date '+%Y%m%d.%H%M'`)
+It uses `YYYYMMDD.HHT` in local time.
+`HH` gives the hour in 24-hour format.
+`T` gives the tens digit of the minute.
+For example, 09:41 on 2026-11-05 gives `20261105.094`.
 The author updates it for every source edit.
 _Avoid_: Version number, build number, setting @version
 

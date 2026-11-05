@@ -2,8 +2,8 @@
 // @name        Redirector
 // @namespace   shiftgeist
 // @icon        https://fav.farm/↗️
-// @version     0.0.1
-// @timestamp   20261103.0000
+// @version     0.0.2
+// @timestamp   20261105.094
 //
 // @match       http://*/*
 // @match       https://*/*
@@ -28,6 +28,11 @@
   'use strict'
 
   let timer
+  let countdown
+  let countdownHost
+  let countdownText
+  let deadline
+  let showTimeLeft = GM_getValue('showTimeLeft', false)
   let editor
 
   const id = '[Redirector]'
@@ -37,6 +42,57 @@
     } catch {}
   }
   const error = (...params) => console.error(id, ...params)
+
+  function stopTimer() {
+    window.clearTimeout(timer)
+    window.clearInterval(countdown)
+    deadline = undefined
+    hideCountdown()
+  }
+
+  function hideCountdown() {
+    window.clearInterval(countdown)
+    countdownHost?.remove()
+    countdownHost = undefined
+    countdownText = undefined
+  }
+
+  function updateCountdown() {
+    if (!document.body) return
+    if (!countdownHost) {
+      countdownHost = createElement('div')
+      countdownHost.style.cssText =
+        'all: initial; position: fixed; bottom: 16px; right: 16px; z-index: 2147483647; pointer-events: none;'
+      const shadow = countdownHost.attachShadow({ mode: 'closed' })
+      countdownText = createElement('span')
+      shadow.append(createElement('style', {
+        textContent:
+          'span { display: block; padding: 8px 12px; border-radius: 8px; background: #202124; color: #fff; font: 14px/1.5 system-ui, sans-serif; font-variant-numeric: tabular-nums; }'
+      }), countdownText)
+      document.body.append(countdownHost)
+    }
+    const seconds = Math.max(0, Math.ceil((deadline - Date.now()) / 1000))
+    const minutes = Math.floor(seconds / 60)
+    countdownText.textContent = `Redirect in ${minutes}:${String(seconds % 60).padStart(2, '0')}`
+  }
+
+  function showCountdown() {
+    if (!showTimeLeft || deadline === undefined) return
+    updateCountdown()
+    countdown = window.setInterval(updateCountdown, 1000)
+  }
+
+  function toggleTimeLeft() {
+    showTimeLeft = !showTimeLeft
+    GM_setValue('showTimeLeft', showTimeLeft)
+    hideCountdown()
+    showCountdown()
+  }
+
+  function startCountdown(delay) {
+    deadline = Date.now() + delay * 1000
+    showCountdown()
+  }
 
   function validateRule(rule) {
     if (!rule || typeof rule !== 'object' || Array.isArray(rule)) {
@@ -107,7 +163,7 @@
       return
     }
 
-    window.clearTimeout(timer)
+    stopTimer()
     const host = createElement('div')
     const shadow = host.attachShadow({ mode: 'closed' })
     const style = createElement('style', {
@@ -280,9 +336,12 @@
         if (delay === 0) {
           redirect(current, destination, clearHistory)
         } else {
-          timer = window.setTimeout(() => redirect(current, destination, clearHistory),
-            delay * 1000)
-          window.addEventListener('pagehide', () => window.clearTimeout(timer), { once: true })
+          startCountdown(delay)
+          timer = window.setTimeout(() => {
+            stopTimer()
+            redirect(current, destination, clearHistory)
+          }, delay * 1000)
+          window.addEventListener('pagehide', stopTimer, { once: true })
         }
         return
       } catch (e) {
@@ -294,6 +353,7 @@
   try {
     addDefaults()
     GM_registerMenuCommand('Edit redirects', editRedirects)
+    GM_registerMenuCommand('Toggle show time left', toggleTimeLeft)
     main()
   } catch (e) {
     error(e)

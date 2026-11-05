@@ -3,7 +3,7 @@
 // @namespace   shiftgeist
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=${WEBSITE}
 // @version     0.0.1
-// @timestamp   20261001.1113
+// @timestamp   20261001.111
 //
 // @match       https://${MATCH_WEBSITE}*
 // @grant       none

@@ -164,6 +164,14 @@ https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/youtube
 
 ## Developers
 
+### Timestamp
+
+Update `@timestamp` for every source edit.
+Use local time in the format `YYYYMMDD.HHT`.
+`HH` gives the hour in 24-hour format.
+`T` gives the tens digit of the minute.
+For example, 09:41 on 2026-11-05 gives `20261105.094`.
+
 ```
 ├── _devtools
 │   └── copy-slim-html-selector.user.js
@@ -195,7 +203,7 @@ const meta = `
 // @namespace   shiftgeist
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=${WEBSITE} or https://fav.farm/${EMOJI}
 // @version     0.0.1
-// @timestamp   20260926.1400
+// @timestamp   20260926.140
 //
 // @match       https://${MATCH_WEBSITE}*
 // @grant       none
