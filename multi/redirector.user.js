@@ -2,7 +2,7 @@
 // @name        Redirector
 // @namespace   shiftgeist
 // @icon        https://fav.farm/↗️
-// @version     0.0.3
+// @version     0.0.4
 // @timestamp   20261105.094
 //
 // @match       http://*/*
@@ -32,7 +32,6 @@
   let countdownHost
   let countdownText
   let deadline
-  let showTimeLeft = GM_getValue('showTimeLeft', false)
   let editor
 
   const id = '[Redirector]'
@@ -77,21 +76,36 @@
   }
 
   function showCountdown() {
-    if (!showTimeLeft || deadline === undefined) return
+    if (deadline === undefined) return
     updateCountdown()
     countdown = window.setInterval(updateCountdown, 1000)
   }
 
-  function toggleTimeLeft() {
-    showTimeLeft = !showTimeLeft
-    GM_setValue('showTimeLeft', showTimeLeft)
-    hideCountdown()
+  function startCountdown(timestamp) {
+    deadline = timestamp
     showCountdown()
   }
 
-  function startCountdown(delay) {
-    deadline = Date.now() + delay * 1000
-    showCountdown()
+  function restoreDeadline(source, destination, delay, clearHistory) {
+    const rule = JSON.stringify([host(source), source.pathname, destination.href, delay, clearHistory])
+    const timestamp = Date.now() + delay * 1000
+    try {
+      const saved = JSON.parse(window.sessionStorage.getItem('redirectorDeadline') ?? 'null')
+      if (saved?.rule === rule && Number.isFinite(saved.deadline)
+        && saved.deadline <= timestamp) return saved.deadline
+      window.sessionStorage.setItem('redirectorDeadline', JSON.stringify({ rule, deadline: timestamp }))
+    } catch (e) {
+      log('Could not restore the deadline:', e)
+    }
+    return timestamp
+  }
+
+  function clearSavedDeadline() {
+    try {
+      window.sessionStorage.removeItem('redirectorDeadline')
+    } catch (e) {
+      log('Could not clear the deadline:', e)
+    }
   }
 
   function validateRule(rule) {
@@ -119,11 +133,18 @@
   function parseAddress(value) {
     const address = value.trim()
     if (!address) throw new Error('Each redirect needs a source and destination address.')
-    return new URL(/^[a-z][a-z\d+.-]*:/i.test(address) ? address : `https://${address}`)
+    const hasPort = /^[^/?#:\s]+:\d+(?:[/?#]|$)/.test(address)
+    const hasProtocol = !hasPort && /^[a-z][a-z\d+.-]*:/i.test(address)
+    return new URL(hasProtocol ? address : `https://${address}`)
   }
 
-  function hostname(url) {
-    return url.hostname.replace(/^www\./, '')
+  function host(url) {
+    return url.host.replace(/^www\./, '')
+  }
+
+  function matches(source, current) {
+    return host(source) === host(current)
+      && (source.pathname === '/' || source.pathname === current.pathname)
   }
 
   function addDefaults() {
@@ -135,7 +156,7 @@
       const exists = redirects.some(rule => {
         try {
           const { source } = validateRule(rule)
-          return hostname(source) === domain
+          return host(source) === domain
         } catch {
           return false
         }
@@ -189,14 +210,15 @@
           background: #f3f4f6; color: #202124; cursor: pointer; font: inherit; }
         button[type=submit] { background: #185abc; border-color: #185abc; color: #fff; }
         .actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+        .actions > :first-child { margin-right: auto; }
         .error { color: #b3261e; white-space: pre-wrap; }
         @media (max-width: 640px) { fieldset { grid-template-columns: 1fr; } }
       `
     })
-    const title = createElement('h2', { id: 'redirector-title', textContent: 'Weiterleitungen' })
+    const title = createElement('h2', { id: 'redirector-title', textContent: 'Redirects' })
     const help = createElement('p', {
       textContent:
-        'Die erste passende Regel gilt. Jede Regel gilt für alle Pfade der Domain, auch mit www. Adressen benötigen kein https://. Änderungen gelten ab dem nächsten Seitenaufruf. „Alten Tab schließen“ löscht nicht den Browserverlauf.'
+        'The first matching rule applies. The host and port must match. A source path matches only that path. A bare domain matches all paths. Rules ignore the protocol and www. Addresses do not need https://. Changes apply on the next page visit. “Close old tab” does not delete your browser history.'
     })
     const rows = createElement('div')
     const message = createElement('p', { className: 'error' })
@@ -220,13 +242,13 @@
       })
       const clearHistory = createElement('input', { type: 'checkbox',
         checked: rule.clearHistory === true })
-      const remove = createElement('button', { type: 'button', textContent: 'Löschen' })
+      const remove = createElement('button', { type: 'button', textContent: 'Delete' })
       const row = createElement('fieldset', {}, [
-        createElement('legend', { textContent: 'Weiterleitung' }),
-        createElement('label', {}, ['Quell-URL', from]),
-        createElement('label', {}, ['Ziel-URL', to]),
-        createElement('label', {}, ['Verzögerung in Sekunden', delay]),
-        createElement('label', { className: 'checkbox' }, [clearHistory, 'Alten Tab schließen']),
+        createElement('legend', { textContent: 'Redirect' }),
+        createElement('label', {}, ['Source address', from]),
+        createElement('label', {}, ['Destination address', to]),
+        createElement('label', {}, ['Delay in seconds', delay]),
+        createElement('label', { className: 'checkbox' }, [clearHistory, 'Close old tab']),
         remove
       ])
       const entry = { row, from, to, delay, clearHistory }
@@ -239,9 +261,9 @@
       return from
     }
 
-    const add = createElement('button', { type: 'button', textContent: 'Hinzufügen' })
-    const cancel = createElement('button', { type: 'button', textContent: 'Abbrechen' })
-    const save = createElement('button', { type: 'submit', textContent: 'Speichern' })
+    const add = createElement('button', { type: 'button', textContent: 'Add' })
+    const cancel = createElement('button', { type: 'button', textContent: 'Cancel' })
+    const save = createElement('button', { type: 'submit', textContent: 'Save' })
     add.addEventListener('click', () => addRow({ from: window.location.href }).focus())
     cancel.addEventListener('click', () => dialog.close())
     form.addEventListener('submit', event => {
@@ -258,7 +280,7 @@
           try {
             validateRule(rule)
           } catch (e) {
-            throw new Error(`Weiterleitung ${index + 1}: ${e.message}`)
+            throw new Error(`Redirect ${index + 1}: ${e.message}`)
           }
           return rule
         })
@@ -267,7 +289,7 @@
         dialog.close()
       } catch (e) {
         error(e)
-        message.textContent = `Speichern fehlgeschlagen: ${e.message}`
+        message.textContent = `Could not save: ${e.message}`
       }
     })
     dialog.addEventListener('close', () => {
@@ -288,7 +310,7 @@
       redirects.forEach(rule => addRow(rule ?? {}))
     } catch (e) {
       error(e)
-      message.textContent = `Liste konnte nicht vollständig geöffnet werden: ${e.message}`
+      message.textContent = `Could not open the complete list: ${e.message}`
     }
     form.append(title, help, rows, message,
       createElement('div', { className: 'actions' }, [add, cancel, save]))
@@ -301,7 +323,7 @@
 
   function redirect(source, destination, clearHistory) {
     const current = new URL(window.location.href)
-    if (hostname(source) !== hostname(current)) return
+    if (!matches(source, current)) return
     if (destination.href === current.href) return
 
     try {
@@ -325,17 +347,21 @@
       try {
         const { source, destination, delay, clearHistory } = validateRule(rule)
         const current = new URL(window.location.href)
-        if (hostname(source) !== hostname(current)) continue
+        if (!matches(source, current)) continue
         if (destination.href === window.location.href) return
 
-        if (delay === 0) {
-          redirect(current, destination, clearHistory)
+        const remaining = Math.max(0,
+          restoreDeadline(source, destination, delay, clearHistory) - Date.now())
+        if (remaining === 0) {
+          clearSavedDeadline()
+          redirect(source, destination, clearHistory)
         } else {
-          startCountdown(delay)
+          startCountdown(Date.now() + remaining)
           timer = window.setTimeout(() => {
             stopTimer()
-            redirect(current, destination, clearHistory)
-          }, delay * 1000)
+            clearSavedDeadline()
+            redirect(source, destination, clearHistory)
+          }, remaining)
           window.addEventListener('pagehide', stopTimer, { once: true })
         }
         return
@@ -348,7 +374,6 @@
   try {
     addDefaults()
     GM_registerMenuCommand('Edit redirects', editRedirects)
-    GM_registerMenuCommand('Toggle show time left', toggleTimeLeft)
     main()
   } catch (e) {
     error(e)
