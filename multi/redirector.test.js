@@ -5,7 +5,7 @@ import vm from 'node:vm'
 
 const script = readFileSync(new URL('./redirector.user.js', import.meta.url), 'utf8')
 
-function setup(delay = 65, showTimeLeft = false, bodyReady = true) {
+function setup(delay = 65, showTimeLeft = false, bodyReady = true, rule = {}) {
   const menus = new Map()
   const intervals = new Map()
   const timeouts = new Map()
@@ -27,14 +27,17 @@ function setup(delay = 65, showTimeLeft = false, bodyReady = true) {
   }
   let now = 0
   let nextId = 0
-  const location = { href: 'https://example.com/', replace: () => {} }
+  const redirected = []
+  const address = rule.from?.trim() ?? 'https://example.com/'
+  const location = { href: new URL(address.includes('://') ? address : `https://${address}`).href,
+    replace: url => redirected.push(url) }
   vm.runInNewContext(script, {
     URL,
     console,
     document,
     Date: { now: () => now },
     GM_getValue: (key, fallback) => key === 'redirects'
-      ? [{ from: location.href, to: 'https://example.org/', delay }]
+      ? [{ from: location.href, to: 'https://example.org/', delay, ...rule }]
       : key === 'smallwebDefaultsAdded' ? true : values.get(key) ?? fallback,
     GM_setValue: (key, value) => values.set(key, value),
     GM_registerMenuCommand: (label, callback) => {
@@ -53,7 +56,7 @@ function setup(delay = 65, showTimeLeft = false, bodyReady = true) {
     }
   })
   return {
-    menus, intervals, timeouts, events, children, document, values,
+    menus, intervals, timeouts, events, children, document, values, location, redirected,
     toggle: () => [...menus.values()].find(menu => menu.label === 'Toggle show time left').callback(),
     text: () => children[0]?.shadow.children[1].textContent,
     labels: () => [...menus.values()].map(menu => menu.label),
@@ -109,4 +112,38 @@ test('immediate redirects do not start a countdown', () => {
   const app = setup(0, true)
   assert.equal(app.children.length, 0)
   assert.equal(app.intervals.size, 0)
+})
+
+test('hostname redirects survive YouTube navigation without restarting the timer', () => {
+  const app = setup(1200, true, true, { from: 'https://youtube.com/', match: 'hostname' })
+  app.tick(600000)
+  app.location.href = 'https://www.youtube.com/watch?v=example'
+  app.tick(599000)
+  assert.equal(app.text(), 'Redirect in 0:01')
+  assert.equal(app.timeouts.size, 1)
+  for (const callback of app.timeouts.values()) callback()
+  assert.deepEqual(app.redirected, ['https://example.org/'])
+})
+
+test('legacy exact rules also match other paths on the same hostname', () => {
+  const app = setup(65, false, true, { match: 'exact' })
+  app.location.href = 'https://example.com/other'
+  for (const callback of app.timeouts.values()) callback()
+  assert.deepEqual(app.redirected, ['https://example.org/'])
+})
+
+test('rules accept addresses without a protocol', () => {
+  const app = setup(65, false, true, {
+    from: ' youtube.com/watch ', to: ' example.org/destination '
+  })
+  app.location.href = 'https://www.youtube.com/watch?v=example'
+  for (const callback of app.timeouts.values()) callback()
+  assert.deepEqual(app.redirected, ['https://example.org/destination'])
+})
+
+test('hostname redirects reject a different hostname', () => {
+  const app = setup(65, false, true, { match: 'hostname' })
+  app.location.href = 'https://other.example.com/'
+  for (const callback of app.timeouts.values()) callback()
+  assert.deepEqual(app.redirected, [])
 })

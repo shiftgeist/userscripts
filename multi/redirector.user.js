@@ -2,7 +2,7 @@
 // @name        Redirector
 // @namespace   shiftgeist
 // @icon        https://fav.farm/↗️
-// @version     0.0.2
+// @version     0.0.3
 // @timestamp   20261105.094
 //
 // @match       http://*/*
@@ -98,12 +98,12 @@
     if (!rule || typeof rule !== 'object' || Array.isArray(rule)) {
       throw new Error('Each redirect must be an object.')
     }
-    const { from, to, delay = 0, clearHistory = false, match = 'exact' } = rule
+    const { from, to, delay = 0, clearHistory = false } = rule
     if (typeof from !== 'string' || typeof to !== 'string') {
       throw new Error('Each redirect needs from and to URLs.')
     }
-    const source = new URL(from)
-    const destination = new URL(to)
+    const source = parseAddress(from)
+    const destination = parseAddress(to)
     if (![source, destination].every(url => ['http:', 'https:'].includes(url.protocol))) {
       throw new Error('The URLs must use HTTP or HTTPS.')
     }
@@ -113,10 +113,13 @@
     if (typeof clearHistory !== 'boolean') {
       throw new Error('The clearHistory option must be a boolean.')
     }
-    if (!['exact', 'hostname'].includes(match)) {
-      throw new Error('The match option must be exact or hostname.')
-    }
-    return { source, destination, delay, clearHistory, match }
+    return { source, destination, delay, clearHistory }
+  }
+
+  function parseAddress(value) {
+    const address = value.trim()
+    if (!address) throw new Error('Each redirect needs a source and destination address.')
+    return new URL(/^[a-z][a-z\d+.-]*:/i.test(address) ? address : `https://${address}`)
   }
 
   function hostname(url) {
@@ -131,15 +134,14 @@
       const from = `https://${domain}/`
       const exists = redirects.some(rule => {
         try {
-          const { source, match } = validateRule(rule)
-          return match === 'hostname' && hostname(source) === domain
+          const { source } = validateRule(rule)
+          return hostname(source) === domain
         } catch {
           return false
         }
       })
       if (!exists) {
-        redirects.push({ from, to: 'https://kagi.com/smallweb', delay, clearHistory: true,
-          match: 'hostname' })
+        redirects.push({ from, to: 'https://kagi.com/smallweb', delay, clearHistory: true })
       }
     }
     GM_setValue('redirects', redirects)
@@ -194,7 +196,7 @@
     const title = createElement('h2', { id: 'redirector-title', textContent: 'Weiterleitungen' })
     const help = createElement('p', {
       textContent:
-        'Die erste passende Regel gilt. Domain-Regeln gelten für alle Pfade, auch mit www. Änderungen gelten ab dem nächsten Seitenaufruf. „Alten Tab schließen“ löscht nicht den Browserverlauf.'
+        'Die erste passende Regel gilt. Jede Regel gilt für alle Pfade der Domain, auch mit www. Adressen benötigen kein https://. Änderungen gelten ab dem nächsten Seitenaufruf. „Alten Tab schließen“ löscht nicht den Browserverlauf.'
     })
     const rows = createElement('div')
     const message = createElement('p', { className: 'error' })
@@ -206,8 +208,8 @@
     let saved = false
 
     function addRow(rule = {}) {
-      const from = createElement('input', { type: 'url', required: true, value: rule.from ?? '' })
-      const to = createElement('input', { type: 'url', required: true, value: rule.to ?? '' })
+      const from = createElement('input', { type: 'text', required: true, value: rule.from ?? '' })
+      const to = createElement('input', { type: 'text', required: true, value: rule.to ?? '' })
       const delay = createElement('input', {
         type: 'number',
         min: '0',
@@ -218,22 +220,16 @@
       })
       const clearHistory = createElement('input', { type: 'checkbox',
         checked: rule.clearHistory === true })
-      const match = createElement('select', {}, [
-        createElement('option', { value: 'exact', textContent: 'Exakte URL' }),
-        createElement('option', { value: 'hostname', textContent: 'Domain (mit und ohne www)' })
-      ])
-      Object.assign(match, { value: rule.match ?? 'exact' })
       const remove = createElement('button', { type: 'button', textContent: 'Löschen' })
       const row = createElement('fieldset', {}, [
         createElement('legend', { textContent: 'Weiterleitung' }),
         createElement('label', {}, ['Quell-URL', from]),
         createElement('label', {}, ['Ziel-URL', to]),
-        createElement('label', {}, ['URL-Abgleich', match]),
         createElement('label', {}, ['Verzögerung in Sekunden', delay]),
         createElement('label', { className: 'checkbox' }, [clearHistory, 'Alten Tab schließen']),
         remove
       ])
-      const entry = { row, from, to, delay, clearHistory, match }
+      const entry = { row, from, to, delay, clearHistory }
       fields.push(entry)
       remove.addEventListener('click', () => {
         fields.splice(fields.indexOf(entry), 1)
@@ -252,13 +248,12 @@
       event.preventDefault()
       message.textContent = ''
       try {
-        const redirects = fields.map(({ from, to, delay, clearHistory, match }, index) => {
+        const redirects = fields.map(({ from, to, delay, clearHistory }, index) => {
           const rule = {
             from: from.value.trim(),
             to: to.value.trim(),
             delay: Number(delay.value),
-            clearHistory: clearHistory.checked,
-            match: match.value
+            clearHistory: clearHistory.checked
           }
           try {
             validateRule(rule)
@@ -305,10 +300,12 @@
   }
 
   function redirect(source, destination, clearHistory) {
-    if (window.location.href !== source.href) return
+    const current = new URL(window.location.href)
+    if (hostname(source) !== hostname(current)) return
+    if (destination.href === current.href) return
 
     try {
-      log('Redirect:', source.href, destination.href)
+      log('Redirect:', current.href, destination.href)
       if (clearHistory) {
         const tab = GM_openInTab(destination.href, { active: true })
         if (!tab) throw new Error('Could not open the destination tab.')
@@ -326,11 +323,9 @@
     if (!Array.isArray(redirects)) throw new Error('The stored list must be an array.')
     for (const rule of redirects) {
       try {
-        const { source, destination, delay, clearHistory, match } = validateRule(rule)
+        const { source, destination, delay, clearHistory } = validateRule(rule)
         const current = new URL(window.location.href)
-        if (match === 'hostname'
-          ? hostname(source) !== hostname(current)
-          : source.href !== current.href) continue
+        if (hostname(source) !== hostname(current)) continue
         if (destination.href === window.location.href) return
 
         if (delay === 0) {
