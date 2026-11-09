@@ -2,7 +2,7 @@
 // @name        Redirector
 // @namespace   shiftgeist
 // @icon        https://fav.farm/↗️
-// @version     0.0.4
+// @version     0.0.5
 // @timestamp   20261105.094
 //
 // @match       http://*/*
@@ -33,6 +33,8 @@
   let countdownText
   let deadline
   let editor
+  let pauseTimer
+  let visibilityListener
 
   const id = '[Redirector]'
   const log = (...params) => {
@@ -43,6 +45,10 @@
   const error = (...params) => console.error(id, ...params)
 
   function stopTimer() {
+    pauseTimer?.()
+    pauseTimer = undefined
+    window.removeEventListener('visibilitychange', visibilityListener, true)
+    visibilityListener = undefined
     window.clearTimeout(timer)
     window.clearInterval(countdown)
     deadline = undefined
@@ -51,9 +57,20 @@
 
   function hideCountdown() {
     window.clearInterval(countdown)
+    document.removeEventListener('mousemove', fadeCountdown)
     countdownHost?.remove()
     countdownHost = undefined
     countdownText = undefined
+  }
+
+  function fadeCountdown(event) {
+    if (!countdownHost) return
+    const bounds = countdownHost.getBoundingClientRect()
+    const distance = Math.hypot(
+      Math.max(bounds.left - event.clientX, 0, event.clientX - bounds.right),
+      Math.max(bounds.top - event.clientY, 0, event.clientY - bounds.bottom)
+    )
+    countdownHost.style.opacity = distance <= 80 ? '0.1' : '1'
   }
 
   function updateCountdown() {
@@ -61,7 +78,7 @@
     if (!countdownHost) {
       countdownHost = createElement('div')
       countdownHost.style.cssText =
-        'all: initial; position: fixed; bottom: 16px; right: 16px; z-index: 2147483647; pointer-events: none;'
+        'all: initial; position: fixed; bottom: 16px; right: 16px; z-index: 2147483647; pointer-events: none; transition: opacity 150ms ease;'
       const shadow = countdownHost.attachShadow({ mode: 'closed' })
       countdownText = createElement('span')
       shadow.append(createElement('style', {
@@ -69,6 +86,7 @@
           'span { display: block; padding: 8px 12px; border-radius: 8px; background: #202124; color: #fff; font: 14px/1.5 system-ui, sans-serif; font-variant-numeric: tabular-nums; }'
       }), countdownText)
       document.body.append(countdownHost)
+      document.addEventListener('mousemove', fadeCountdown)
     }
     const seconds = Math.max(0, Math.ceil((deadline - Date.now()) / 1000))
     const minutes = Math.floor(seconds / 60)
@@ -87,17 +105,36 @@
   }
 
   function restoreDeadline(source, destination, delay, clearHistory) {
-    const rule = JSON.stringify([host(source), source.pathname, destination.href, delay, clearHistory])
+    const rule = JSON.stringify([host(source), source.pathname, destination.href, delay,
+      clearHistory])
     const timestamp = Date.now() + delay * 1000
     try {
       const saved = JSON.parse(window.sessionStorage.getItem('redirectorDeadline') ?? 'null')
+      if (saved?.rule === rule && Number.isFinite(saved.remaining)
+        && saved.remaining >= 0 && saved.remaining <= delay * 1000)
+      {
+        return Date.now() + saved.remaining
+      }
       if (saved?.rule === rule && Number.isFinite(saved.deadline)
         && saved.deadline <= timestamp) return saved.deadline
-      window.sessionStorage.setItem('redirectorDeadline', JSON.stringify({ rule, deadline: timestamp }))
+      window.sessionStorage.setItem('redirectorDeadline',
+        JSON.stringify({ rule, deadline: timestamp }))
     } catch (e) {
       log('Could not restore the deadline:', e)
     }
     return timestamp
+  }
+
+  function saveTimer(remaining) {
+    try {
+      const saved = JSON.parse(window.sessionStorage.getItem('redirectorDeadline') ?? 'null')
+      if (!saved) return
+      saved.deadline = deadline
+      saved.remaining = deadline === undefined ? remaining : undefined
+      window.sessionStorage.setItem('redirectorDeadline', JSON.stringify(saved))
+    } catch (e) {
+      log('Could not save the timer:', e)
+    }
   }
 
   function clearSavedDeadline() {
@@ -350,20 +387,43 @@
         if (!matches(source, current)) continue
         if (destination.href === window.location.href) return
 
-        const remaining = Math.max(0,
+        let remaining = Math.max(0,
           restoreDeadline(source, destination, delay, clearHistory) - Date.now())
-        if (remaining === 0) {
+        const finish = () => {
+          stopTimer()
           clearSavedDeadline()
           redirect(source, destination, clearHistory)
-        } else {
-          startCountdown(Date.now() + remaining)
-          timer = window.setTimeout(() => {
-            stopTimer()
-            clearSavedDeadline()
-            redirect(source, destination, clearHistory)
-          }, remaining)
-          window.addEventListener('pagehide', stopTimer, { once: true })
         }
+        pauseTimer = () => {
+          if (deadline !== undefined) remaining = Math.max(0, deadline - Date.now())
+          window.clearTimeout(timer)
+          deadline = undefined
+          hideCountdown()
+          saveTimer(remaining)
+        }
+        visibilityListener = () => {
+          if (document.visibilityState !== 'visible') {
+            pauseTimer()
+            return
+          }
+          if (deadline !== undefined) return
+          if (remaining === 0) {
+            finish()
+            return
+          }
+          startCountdown(Date.now() + remaining)
+          saveTimer(remaining)
+          timer = window.setTimeout(() => {
+            if (document.visibilityState !== 'visible') {
+              pauseTimer()
+              return
+            }
+            finish()
+          }, remaining)
+        }
+        window.addEventListener('visibilitychange', visibilityListener, true)
+        window.addEventListener('pagehide', stopTimer, { once: true })
+        visibilityListener()
         return
       } catch (e) {
         error(e)

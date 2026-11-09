@@ -10,6 +10,7 @@ function setup(delay = 65, showTimeLeft = undefined, bodyReady = true, rule = {}
   const intervals = new Map()
   const timeouts = new Map()
   const events = new Map()
+  const windowListeners = new Map()
   const values = new Map([['showTimeLeft', showTimeLeft]])
   const children = []
   function element() {
@@ -22,6 +23,11 @@ function setup(delay = 65, showTimeLeft = undefined, bodyReady = true, rule = {}
     }
   }
   const document = {
+    visibilityState: session.hidden ? 'hidden' : 'visible',
+    addEventListener: (name, callback) => events.set(name, callback),
+    removeEventListener: (name, callback) => {
+      if (events.get(name) === callback) events.delete(name)
+    },
     body: bodyReady ? { append: node => children.push(node) } : null,
     createElement: element
   }
@@ -62,13 +68,24 @@ function setup(delay = 65, showTimeLeft = undefined, bodyReady = true, rule = {}
       clearTimeout: id => timeouts.delete(id),
       setInterval: callback => { intervals.set(++nextId, callback); return nextId },
       clearInterval: id => intervals.delete(id),
-      addEventListener: (name, callback) => events.set(name, callback)
+      addEventListener: (name, callback, options) => {
+        events.set(name, callback)
+        windowListeners.set(name, { callback, options })
+      },
+      removeEventListener: (name, callback) => {
+        if (events.get(name) === callback) events.delete(name)
+        if (windowListeners.get(name)?.callback === callback) windowListeners.delete(name)
+      }
     }
   })
   return {
-    menus, intervals, timeouts, events, children, document, values, location, redirected, storage,
+    menus, intervals, timeouts, events, windowListeners, children, document, values, location, redirected, storage,
     text: () => children[0]?.shadow.children[1].textContent,
     labels: () => [...menus.values()].map(menu => menu.label),
+    visibility: state => {
+      document.visibilityState = state
+      events.get('visibilitychange')?.()
+    },
     tick: milliseconds => {
       now += milliseconds
       for (const callback of intervals.values()) callback()
@@ -242,4 +259,77 @@ test('a completed timer clears its saved deadline', () => {
   const app = setup()
   for (const callback of app.timeouts.values()) callback()
   assert.equal(app.storage.size, 0)
+})
+
+test('hidden tabs pause the delay until they become visible again', () => {
+  const session = {}
+  const app = setup(65, true, true, {}, session)
+  app.tick(10000)
+  app.visibility('hidden')
+  assert.equal(app.timeouts.size, 0)
+  assert.equal(app.intervals.size, 0)
+  app.tick(120000)
+  app.visibility('visible')
+  assert.equal(app.text(), 'Redirect in 0:55')
+  assert.equal(session.timeoutDelay, 55000)
+  app.tick(5000)
+  app.visibility('hidden')
+  app.tick(120000)
+  app.visibility('visible')
+  assert.equal(app.text(), 'Redirect in 0:50')
+  assert.deepEqual(app.redirected, [])
+})
+
+test('visibility changes reach the timer before document listeners can block them', () => {
+  const app = setup()
+  const listener = app.windowListeners.get('visibilitychange')
+  assert.equal(listener?.options, true)
+  app.tick(10000)
+  app.document.visibilityState = 'hidden'
+  listener.callback()
+  assert.equal(app.timeouts.size, 0)
+  app.tick(120000)
+  app.document.visibilityState = 'visible'
+  listener.callback()
+  assert.equal(app.text(), 'Redirect in 0:55')
+  app.events.get('pagehide')()
+  assert.equal(app.windowListeners.has('visibilitychange'), false)
+})
+
+test('tabs that start hidden wait for visibility before starting the delay', () => {
+  const app = setup(65, true, true, {}, { hidden: true })
+  assert.equal(app.timeouts.size, 0)
+  app.tick(120000)
+  app.visibility('visible')
+  assert.equal(app.text(), 'Redirect in 1:05')
+})
+
+test('reload preserves the remaining delay while hidden', () => {
+  const first = setup()
+  first.tick(10000)
+  first.visibility('hidden')
+  first.events.get('pagehide')()
+  const app = setup(65, true, true, {}, { storage: first.storage, now: 130000, hidden: true })
+  app.tick(120000)
+  app.visibility('visible')
+  assert.equal(app.text(), 'Redirect in 0:55')
+})
+
+test('hidden tabs defer immediate redirects until visible', () => {
+  const app = setup(0, true, true, {}, { hidden: true })
+  assert.deepEqual(app.redirected, [])
+  app.visibility('visible')
+  assert.deepEqual(app.redirected, ['https://example.org/'])
+})
+
+test('the countdown fades near the pointer and returns when the pointer leaves', () => {
+  const app = setup()
+  const badge = app.children[0]
+  badge.getBoundingClientRect = () => ({ left: 800, right: 950, top: 700, bottom: 740 })
+  app.events.get('mousemove')({ clientX: 760, clientY: 720 })
+  assert.equal(badge.style.opacity, '0.1')
+  app.events.get('mousemove')({ clientX: 400, clientY: 300 })
+  assert.equal(badge.style.opacity, '1')
+  app.events.get('pagehide')()
+  assert.equal(app.events.has('mousemove'), false)
 })
