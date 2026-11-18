@@ -16,6 +16,16 @@ https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/_devtoo
 
 <small>[_devtools/copy-slim-html-selector.user.js](_devtools/copy-slim-html-selector.user.js)</small>
 
+### Amazon.de — Bestseller by default
+
+> Select Bestseller when Amazon.de defaults to Empfohlen. Keep manual sort choices.
+
+```
+https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/amazon.de/sort-popular.user.js
+```
+
+<small>[amazon.de/sort-popular.user.js](amazon.de/sort-popular.user.js)</small>
+
 ### Ampido Sorting
 
 > Adds sorting (distance, rating, reviews, price) to Ampido parking search results
@@ -35,6 +45,16 @@ https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/atlassi
 ```
 
 <small>[atlassian.net/jira-ticket.user.js](atlassian.net/jira-ticket.user.js)</small>
+
+### Azure DevOps Repository Commit History Utils
+
+> Adds a button to copy the commit hash on Azure DevOps repository commit history pages
+
+```
+https://raw.githubusercontent.com/shiftgeist/userscripts/refs/heads/main/azure/repo-commit-utils.user.js
+```
+
+<small>[azure/repo-commit-utils.user.js](azure/repo-commit-utils.user.js)</small>
 
 ### DeepL: Text Chunker
 

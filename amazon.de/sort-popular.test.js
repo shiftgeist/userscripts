@@ -5,7 +5,9 @@ import vm from 'node:vm'
 
 const script = readFileSync(new URL('./sort-popular.user.js', import.meta.url), 'utf8')
 
-function setup({ value = 'relevanceblender', ready = true, custom = false, bestseller = true } = {}) {
+function setup(
+  { value = 'relevanceblender', ready = true, custom = false, bestseller = true } = {}
+) {
   const events = []
   let clicks = 0
   let observer
@@ -17,7 +19,9 @@ function setup({ value = 'relevanceblender', ready = true, custom = false, bests
   const select = {
     value,
     options,
-    get selectedOptions() { return options.filter(option => option.value === this.value) },
+    get selectedOptions() {
+      return options.filter(option => option.value === this.value)
+    },
     dispatchEvent: event => events.push(event)
   }
   const recommended = { getAttribute: () => select.value === 'relevanceblender' ? 'true' : 'false' }
@@ -35,12 +39,23 @@ function setup({ value = 'relevanceblender', ready = true, custom = false, bests
   vm.runInNewContext(script, {
     document,
     Event: class {
-      constructor(type, properties) { this.type = type; Object.assign(this, properties) }
+      constructor(type, properties) {
+        this.type = type
+        Object.assign(this, properties)
+      }
     },
     MutationObserver: class {
-      constructor(callback) { observer = this; this.callback = callback; this.active = false }
-      observe() { this.active = true }
-      disconnect() { this.active = false }
+      constructor(callback) {
+        observer = this
+        this.callback = callback
+        this.active = false
+      }
+      observe() {
+        this.active = true
+      }
+      disconnect() {
+        this.active = false
+      }
     },
     window: { localStorage: { getItem: () => null } },
     console
@@ -48,9 +63,16 @@ function setup({ value = 'relevanceblender', ready = true, custom = false, bests
   return {
     select,
     events,
-    get clicks() { return clicks },
-    get observing() { return observer?.active ?? false },
-    render: () => { ready = true; if (observer?.active) observer.callback() }
+    get clicks() {
+      return clicks
+    },
+    get observing() {
+      return observer?.active ?? false
+    },
+    render: () => {
+      ready = true
+      if (observer?.active) observer.callback()
+    }
   }
 }
 

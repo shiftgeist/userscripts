@@ -17,9 +17,16 @@ function setup(delay = 65, showTimeLeft = undefined, bodyReady = true, rule = {}
     return {
       style: {},
       children: [],
-      append(...nodes) { this.children.push(...nodes) },
-      attachShadow() { this.shadow = element(); return this.shadow },
-      remove() { children.splice(children.indexOf(this), 1) }
+      append(...nodes) {
+        this.children.push(...nodes)
+      },
+      attachShadow() {
+        this.shadow = element()
+        return this.shadow
+      },
+      remove() {
+        children.splice(children.indexOf(this), 1)
+      }
     }
   }
   const document = {
@@ -36,16 +43,21 @@ function setup(delay = 65, showTimeLeft = undefined, bodyReady = true, rule = {}
   let nextId = 0
   const redirected = []
   const address = rule.from?.trim() ?? 'https://example.com/'
-  const location = { href: session.href ?? new URL(address.includes('://') ? address : `https://${address}`).href,
-    replace: url => redirected.push(url) }
+  const location = {
+    href: session.href ?? new URL(address.includes('://') ? address : `https://${address}`).href,
+    replace: url => redirected.push(url)
+  }
   vm.runInNewContext(script, {
     URL,
     console,
     document,
     Date: { now: () => now },
-    GM_getValue: (key, fallback) => key === 'redirects'
-      ? [{ from: location.href, to: 'https://example.org/', delay, ...rule }]
-      : key === 'smallwebDefaultsAdded' ? true : values.get(key) ?? fallback,
+    GM_getValue: (key, fallback) =>
+      key === 'redirects'
+        ? [{ from: location.href, to: 'https://example.org/', delay, ...rule }]
+        : key === 'smallwebDefaultsAdded'
+        ? true
+        : values.get(key) ?? fallback,
     GM_setValue: (key, value) => values.set(key, value),
     GM_registerMenuCommand: (label, callback) => {
       const id = ++nextId
@@ -66,7 +78,10 @@ function setup(delay = 65, showTimeLeft = undefined, bodyReady = true, rule = {}
         return nextId
       },
       clearTimeout: id => timeouts.delete(id),
-      setInterval: callback => { intervals.set(++nextId, callback); return nextId },
+      setInterval: callback => {
+        intervals.set(++nextId, callback)
+        return nextId
+      },
       clearInterval: id => intervals.delete(id),
       addEventListener: (name, callback, options) => {
         events.set(name, callback)
@@ -79,7 +94,17 @@ function setup(delay = 65, showTimeLeft = undefined, bodyReady = true, rule = {}
     }
   })
   return {
-    menus, intervals, timeouts, events, windowListeners, children, document, values, location, redirected, storage,
+    menus,
+    intervals,
+    timeouts,
+    events,
+    windowListeners,
+    children,
+    document,
+    values,
+    location,
+    redirected,
+    storage,
     text: () => children[0]?.shadow.children[1].textContent,
     labels: () => [...menus.values()].map(menu => menu.label),
     visibility: state => {
@@ -157,7 +182,8 @@ test('legacy exact rules also match other paths on the same hostname', () => {
 
 test('rules accept addresses without a protocol', () => {
   const app = setup(65, false, true, {
-    from: ' youtube.com/watch ', to: ' example.org/destination '
+    from: ' youtube.com/watch ',
+    to: ' example.org/destination '
   })
   app.location.href = 'https://www.youtube.com/watch?v=example'
   for (const callback of app.timeouts.values()) callback()
@@ -195,7 +221,8 @@ test('rules match another path on the same port', () => {
 
 test('a local route rule never starts on a different port', () => {
   const app = setup(0, true, true, {
-    from: 'localhost:3000/search-ui/de-be', to: 'http://localhost:3000/search-ui/de-de'
+    from: 'localhost:3000/search-ui/de-be',
+    to: 'http://localhost:3000/search-ui/de-de'
   }, { href: 'http://localhost:3005/search-ui/de-be' })
   assert.deepEqual(app.redirected, [])
   assert.equal(app.timeouts.size, 0)
@@ -203,14 +230,16 @@ test('a local route rule never starts on a different port', () => {
 
 test('a local route rule matches its source across HTTP and HTTPS', () => {
   const app = setup(0, true, true, {
-    from: 'localhost:3000/search-ui/de-be', to: 'http://localhost:3000/search-ui/de-de'
+    from: 'localhost:3000/search-ui/de-be',
+    to: 'http://localhost:3000/search-ui/de-de'
   }, { href: 'http://localhost:3000/search-ui/de-be' })
   assert.deepEqual(app.redirected, ['http://localhost:3000/search-ui/de-de'])
 })
 
 test('a local route rule does not redirect other paths on the same port', () => {
   const app = setup(0, true, true, {
-    from: 'localhost:3000/search-ui/de-be', to: 'http://localhost:3000/search-ui/de-de'
+    from: 'localhost:3000/search-ui/de-be',
+    to: 'http://localhost:3000/search-ui/de-de'
   }, { href: 'http://localhost:3000/search-ui/fr-fr' })
   assert.deepEqual(app.redirected, [])
 })
