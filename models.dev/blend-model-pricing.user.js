@@ -2,14 +2,14 @@
 // @name        Blend Model Pricing
 // @namespace   shiftgeist
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=models.dev
-// @version     0.0.3
+// @version     0.0.4
 //
 // @match       https://models.dev/*
 // @grant       none
 // @run-at      document-idle
 //
 // @author      shiftgeist
-// @description Show the combined pricing of input and output tokens per 1m
+// @description Show blended token prices and model release dates
 // @license     GNU GPLv3
 //
 // @homepage    https://github.com/shiftgeist/userscripts
@@ -95,7 +95,14 @@
       indicator])
     blendTh.append(button)
     priceCellTh.after(blendTh)
-    ;[blendTh, ...thCells.slice(thCells.indexOf(priceCellTh) + 1)].forEach(header => {
+    const releasedTh = createElement('th', { scope: 'col', className: 'sortable' })
+    const releasedIndicator = createElement('span', { className: 'sort-indicator' })
+    releasedIndicator.setAttribute('aria-hidden', 'true')
+    releasedTh.append(createElement('button', { type: 'button', className: 'sort-button' }, [
+      'Released', releasedIndicator
+    ]))
+    thCells.at(-1).after(releasedTh)
+    ;[blendTh, ...thCells.slice(thCells.indexOf(priceCellTh) + 1), releasedTh].forEach(header => {
       const sortButton = $('button', header)
       if (!header.classList.contains('sortable') || !sortButton) return
       sortButton.addEventListener('click', event => {
@@ -152,7 +159,40 @@
 
       cell.after(blendTd)
     })
-    $$('.empty-row > td[colspan]', table).forEach(cell => cell.colSpan++)
+    const releaseCells = $$('tbody > tr', table)
+      .filter(row => !row.classList.contains('empty-row'))
+      .map(row => {
+        const cell = createElement('td', { textContent: '-' })
+        cell.dataset.sort = ''
+        row.append(cell)
+        return { row, cell }
+      })
+    $$('.empty-row > td[colspan]', table).forEach(cell => cell.colSpan += 2)
+
+    fetch('/api.json')
+      .then(response => {
+        if (!response.ok) throw new Error(`Model metadata request failed: ${response.status}`)
+        return response.json()
+      })
+      .then(providers => {
+        const dates = new Map()
+        Object.entries(providers).forEach(([providerId, provider]) => {
+          Object.values(provider.models).forEach(model => {
+            dates.set(`${providerId}/${model.id}`, model.release_date)
+            if (model.canonical_model_id && model.release_date) {
+              dates.set(model.canonical_model_id, model.release_date)
+            }
+          })
+        })
+        releaseCells.forEach(({ row, cell }) => {
+          const providerModel = $('[data-copy-value]', row)?.dataset.copyValue
+          const modelLink = $('a[href^="/models/"]', row)?.getAttribute('href')
+          const date = dates.get(providerModel) ?? dates.get(modelLink?.replace(/^\/models\//, '').replace(/\/$/, ''))
+          cell.textContent = date || '-'
+          cell.dataset.sort = date || ''
+        })
+      })
+      .catch(error => console.warn('[Blend] Could not load release dates:', error))
   }
 
   waitForElement('.table-wrap > table', main)
