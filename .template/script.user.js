@@ -1,16 +1,16 @@
 // ==UserScript==
-// @name        ${NAME}
+// @name        TEMPLATE
 // @namespace   shiftgeist
-// @icon        https://www.google.com/s2/favicons?sz=64&domain=${WEBSITE}
+// @icon        https://www.google.com/s2/favicons?sz=64&domain=violentmonkey.github.io
 // @version     0.0.1
 // @timestamp   20261001.111
 //
-// @match       https://${MATCH_WEBSITE}*
+// @match       https://example.org/
 // @grant       none
 // @run-at      document-idle
 //
 // @author      shiftgeist
-// @description ${DESCRIPTION}
+// @description Put your description here.
 // @license     GNU GPLv3
 //
 // @homepage    https://github.com/shiftgeist/userscripts
@@ -21,13 +21,13 @@
 ;(() => {
   'use strict'
 
-  const id = '[${NAME}]'
+  const id = '[TEMPLATE]'
   const debug = window.localStorage.getItem('debug') === 'true'
   const $ = (selector, parent = document) => parent.querySelector(selector)
   const $$ = (selector, parent = document) => [...parent.querySelectorAll(selector)]
 
   const log = (...params) => debug && console.debug(id, ...params)
-  const error = (...params) => debug && console.error(id, ...params)
+  const error = (...params) => console.error(id, ...params)
 
   function createElement(tagName, properties = {}, children = []) {
     const element = document.createElement(tagName)
@@ -54,7 +54,7 @@
   }
 
   try {
-    waitForElement('${SELECTOR}', main)
+    waitForElement('body', main)
   } catch (e) {
     error(e)
   }
