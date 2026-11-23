@@ -10,7 +10,7 @@
   "json": {
     "trailingCommas": "never"
   },
-  "lineWidth": 100,
+  "lineWidth": 120,
   "plugins": [
     "npm:dprint-plugin-malva@0.16.0",
     "npm:dprint-plugin-yaml@0.6.0",
