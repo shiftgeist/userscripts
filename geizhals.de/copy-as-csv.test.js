@@ -49,7 +49,7 @@ function phone(rawSpecs, links = [], barometer = null, identity = {}) {
       querySelector: selector => selector === '#data' ? section : selector === '.barometer' ? barometer : identity[selector] ?? null,
       querySelectorAll: selector => selector.endsWith(' .variant__content__list-item__link')
         ? identity[selector] ?? []
-        : [{ getAttribute: () => '/?cat=umtsover' }],
+        : [{ getAttribute: () => identity.categoryHref ?? '/?cat=umtsover' }],
       createElement: node
     },
     location: { href: page },
@@ -309,6 +309,57 @@ test('exports sensor flags and the fingerprint sensor type separately', async ()
   assert.equal(partial.Barometer, 'FALSE')
   assert.equal(partial['Fingerabdrucksensor Typ'], 'seitlich')
   assert.equal((await phone({}).copy()).Barometer, '')
+})
+
+test('parses known labels and retains extra fields without a known category', async () => {
+  for (const categoryHref of ['/?cat=unknown', '/']) {
+    const app = phone({ RAM: '16GB', Gehäuse: 'Aluminium' }, [], null, { categoryHref })
+    assert.equal(app.facts['RAM (GB)']?.textContent, '16')
+    const exported = await app.copy()
+    assert.equal(exported['RAM (GB)'], '16')
+    assert.equal(exported.Gehäuse, 'Aluminium')
+  }
+})
+
+test('parses notebook specs by label', async () => {
+  const app = phone({
+    Display: '16", 1920x1200 (WUXGA), 16:10, 142ppi, 60Hz, OLED, 300cd/\u200bm², Blaulichtfilter, 0.2ms',
+    CPU: 'AMD Ryzen AI 5 430, 1C+3c/8T, 2.00-4.50GHz',
+    RAM: '16GB LPDDR5X-7500 Onboard, nicht erweiterbar',
+    SSD: '512GB M.2 PCIe 4.0',
+    Grafik: 'AMD Radeon 840M (iGPU), 4CU/256SP, 2.80GHz',
+    Anschlüsse: '2x USB-C 3.1 (10Gb/s, BC), 1x USB-A 3.1, 1x USB-A 3.0, 1x HDMI 2.1, 1x 3.5mm Klinke',
+    Wireless: 'Wi-Fi 6 (WLAN 802.11ax, 2x2), Bluetooth 5.4',
+    Kamera: '2 Megapixel, Webcam-Abdeckung, IR-Kamera',
+    Akku: 'fest verbaut, 4 Zellen, 68Wh',
+    Netzteil: '1x USB-C Netzteil (65W, GaN)',
+    Gewicht: '1.69kg',
+    'USB-Schreibweise': 'Link'
+  }, [{ href: 'https://upload.wikimedia.org/wikipedia/commons/f/f8/USB_Standards_inkl_USB4.0Gen3x2.svg' }], null, {
+    categoryHref: '/?cat=nb'
+  })
+  const exported = await app.copy()
+  for (const [field, expected] of Object.entries({
+    'Display (Zoll)': '16', 'Displayauflösung': '1920x1200', PPI: '142', 'Aktualisierungsrate (Hz)': '60',
+    'Helligkeit (cd/m²)': '300', 'Reaktionszeit (ms)': '0.2', CPU: 'AMD Ryzen AI 5 430', 'CPU (GHz)': '4.5',
+    'RAM (GB)': '16', Storage: '512', 'Storage type': 'ssd', Grafik: 'AMD Radeon 840M (iGPU)', 'Grafik (GHz)': '2.8',
+    'USB-C': '2', 'USB-A': '2', HDMI: '1', '3.5mm Klinke': '1', 'Wi-Fi Version': '6',
+    'Bluetooth Version': '5.4', Kamera: 'Yes', 'Akku (Wh)': '68', 'Netzteil (W)': '65', 'Gewicht (kg)': '1.69',
+    'USB-Schreibweise': 'USB 4.0 Gen 3x2'
+  })) {
+    assert.equal(exported[field], expected, field)
+    assert.equal(app.facts[field]?.textContent, expected, field)
+  }
+})
+
+test('exports flash capacity in Storage and leaves missing storage blank', async () => {
+  const identity = { categoryHref: '/?cat=nb' }
+  const flash = await phone({ Flash: '128GB eMMC' }, [], null, identity).copy()
+  assert.equal(flash.Storage, '128')
+  assert.equal(flash['Storage type'], 'flash')
+  const missing = await phone({}, [], null, identity).copy()
+  assert.equal(missing.Storage, '')
+  assert.equal(missing['Storage type'], '')
 })
 
 test('reports 5G support from frequency bands', async () => {

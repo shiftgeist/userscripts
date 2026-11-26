@@ -76,7 +76,7 @@
       links: () => [manualUrl()].filter(Boolean)
     },
     {
-      name: 'Current price',
+      name: 'Price',
       source: () => $('.barometer')?.dataset.bestprice ?? ''
     },
     {
@@ -223,6 +223,67 @@
     accessoryColumn('Displayschutz')
   ]
 
+  const notebookColumns = [
+    parsedColumn('Display (Zoll)', 'Display', v => numberInUnit(v, '"')),
+    parsedColumn('Displayauflösung', 'Display',
+      v => capture(v, /\b(\d+\s*[x×]\s*\d+)\b/i).replace(/\s/g, '').replace('×', 'x')),
+    parsedColumn('PPI', 'Display', v => numberInUnit(v, 'ppi')),
+    parsedColumn('Aktualisierungsrate (Hz)', 'Display', v => captureNumber(v, /(\d+(?:[.,]\d+)?)\s*Hz\b/i)),
+    parsedColumn('Helligkeit (cd/m²)', 'Display', v => numberInUnit(v.replace(/\u200b/g, ''), 'cd/m²')),
+    parsedColumn('Reaktionszeit (ms)', 'Display', v => numberInUnit(v, 'ms')),
+    parsedColumn('CPU', 'CPU', v => v.split(',')[0].trim()),
+    parsedColumn('CPU (GHz)', 'CPU', maxClock),
+    parsedColumn('RAM (GB)', 'RAM', storageInGb),
+    { name: 'Storage', source: sources => notebookStorage(sources)?.capacity ?? '' },
+    { name: 'Storage type', source: sources => notebookStorage(sources)?.type ?? '' },
+    parsedColumn('Grafik', 'Grafik', v => v.split(',')[0].trim()),
+    parsedColumn('Grafik (GHz)', 'Grafik', maxClock),
+    ...[
+      ['USB-C', /(\d+)\s*x\s*USB-C\b/gi],
+      ['USB-A', /(\d+)\s*x\s*USB-A\b/gi],
+      ['HDMI', /(\d+)\s*x\s*HDMI\b/gi],
+      ['3.5mm Klinke', /(\d+)\s*x\s*3[.,]5\s*mm\s+Klinke\b/gi]
+    ].map(([name, pattern]) =>
+      parsedColumn(name, 'Anschlüsse', v =>
+        v && String([...v.matchAll(pattern)].reduce((sum, match) => sum + Number(match[1]), 0)))
+    ),
+    parsedColumn('Wi-Fi Version', 'Wireless', v => capture(v, /\bWi-Fi\s+(\d+)(?:E)?\b/i)),
+    parsedColumn('Bluetooth Version', 'Wireless', v => capture(v, /\bBluetooth\s+(\d+(?:\.\d+)*)\b/i)),
+    parsedColumn('Kamera', 'Kamera', v => v && (/^(?:nein|keine?|nicht vorhanden|[-–])$/i.test(v) ? 'No' : 'Yes')),
+    parsedColumn('Akku (Wh)', 'Akku', v => numberInUnit(v, 'Wh')),
+    parsedColumn('Netzteil (W)', 'Netzteil', v => numberInUnit(v, 'W')),
+    parsedColumn('Gewicht (kg)', 'Gewicht', v => numberInUnit(v, 'kg')),
+    {
+      name: 'USB-Schreibweise',
+      source: sources => {
+        const source = sources.get('usb-schreibweise')
+        for (const value of [source?.value ?? '', ...(source?.links ?? []).map(link => link.href)]) {
+          const [, version, generation] = /USB\s*(\d+(?:\.\d+)?)\s*Gen\s*(\d+x\d+)/i.exec(value) ?? []
+          if (version) return `USB ${version} Gen ${generation.toLowerCase()}`
+        }
+        return ''
+      }
+    }
+  ]
+
+  function notebookStorage(sources) {
+    for (const type of ['ssd', 'flash']) {
+      const capacity = storageInGb(sources.get(type)?.value ?? '')
+      if (capacity !== '') return { capacity, type }
+    }
+  }
+
+  function maxClock(value) {
+    const clocks = [...value.matchAll(/(\d+(?:[.,]\d+)?)\s*GHz\b/gi)]
+    return clocks.length ? String(Math.max(...clocks.map(match => Number(match[1].replace(',', '.'))))) : ''
+  }
+
+  const allColumns = [
+    ...defaultColumns,
+    ...phoneColumns,
+    ...notebookColumns
+  ]
+
   function parseNumber(value) {
     let token = value.match(numberToken)?.[0]
     if (!token) return ''
@@ -243,7 +304,7 @@
       if (!key) continue
       const details = $('dd', item)
       const source = { name, value: text(details) }
-      if (key === 'zubehör' && details) {
+      if ((key === 'zubehör' || key === 'usb-schreibweise') && details) {
         source.links = $$('a[href]', details)
           .filter(link => /^https?:\/\//i.test(link.href))
           .map(link => ({ key: label(text(link)), href: link.href }))
@@ -421,15 +482,15 @@
   }
 
   function getColumns(id, sources) {
+    if (id === 'nb') return [...defaultColumns, ...notebookColumns]
     if (id === 'umtsover') return [...defaultColumns, ...phoneColumns]
 
-    const columns = [...defaultColumns]
-    const defaultKeys = new Set(defaultColumns.map(column => label(column.name)))
+    const knownKeys = new Set(allColumns.map(column => label(column.name)))
     for (const [key, { name }] of sources) {
-      if (defaultKeys.has(key)) continue
-      columns.push(fieldColumn(name))
+      if (knownKeys.has(key)) continue
+      allColumns.push(fieldColumn(name))
     }
-    return columns
+    return allColumns
   }
 
   function showFacts(section, columns, sources) {
